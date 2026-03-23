@@ -63,7 +63,7 @@ Frontend build-time variables:
 1. `VITE_API_BASE_URL=/api/v1`
 2. `VITE_CLERK_PUBLISHABLE_KEY=...`
 
-The backend now normalizes plain Postgres URLs from managed services into the async SQLAlchemy format the app uses, so the managed database URL can be passed directly.
+The backend now normalizes plain Postgres URLs from managed services into the async SQLAlchemy format the app uses, including rewriting `sslmode=require` into the `ssl` query parameter that `asyncpg` expects, so the managed database URL can be passed directly.
 
 ## 5. Configure Clerk
 

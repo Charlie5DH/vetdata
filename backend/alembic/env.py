@@ -3,6 +3,7 @@ from app.core.database import Base
 import sys
 from logging.config import fileConfig
 import os
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from dotenv import load_dotenv
 
 from sqlalchemy import pool
@@ -16,12 +17,30 @@ def normalize_database_url(value: str) -> str:
     normalized = value.strip()
 
     if normalized.startswith("postgres://"):
-        return normalized.replace("postgres://", "postgresql+asyncpg://", 1)
+        normalized = normalized.replace(
+            "postgres://", "postgresql+asyncpg://", 1)
 
-    if normalized.startswith("postgresql://"):
-        return normalized.replace("postgresql://", "postgresql+asyncpg://", 1)
+    elif normalized.startswith("postgresql://"):
+        normalized = normalized.replace(
+            "postgresql://", "postgresql+asyncpg://", 1)
 
-    return normalized
+    split_url = urlsplit(normalized)
+    query_params = parse_qsl(split_url.query, keep_blank_values=True)
+
+    rewritten_query_params: list[tuple[str, str]] = []
+    for key, query_value in query_params:
+        if key != "sslmode":
+            rewritten_query_params.append((key, query_value))
+            continue
+
+        if query_value.lower() in {"require", "prefer", "allow"}:
+            rewritten_query_params.append(("ssl", "require"))
+        elif query_value.lower() in {"disable", "false", "0"}:
+            rewritten_query_params.append(("ssl", "false"))
+        else:
+            rewritten_query_params.append(("ssl", query_value))
+
+    return urlunsplit(split_url._replace(query=urlencode(rewritten_query_params)))
 
 
 # Load environment variables

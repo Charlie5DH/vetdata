@@ -1,0 +1,6 @@
+
+E:\Private\vetdata\frontend\src\pages\TreatmentSessionDetails.tsx
+  586:0  error  Parsing error: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Γ£û 1 problem (1 error, 0 warnings)
+

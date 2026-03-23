@@ -1,0 +1,107 @@
+name: vetdata
+region: nyc
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+databases:
+  - name: vetdata-db
+    engine: PG
+    version: "15"
+    production: true
+    db_name: vetdata
+    db_user: vetdata
+
+services:
+  - name: backend
+    github:
+      repo: YOUR_GITHUB_ORG/YOUR_MONOREPO
+      branch: main
+      deploy_on_push: true
+    source_dir: ./backend
+    dockerfile_path: ./Dockerfile
+    http_port: 8000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    health_check:
+      http_path: /api/v1/health
+      initial_delay_seconds: 10
+      period_seconds: 15
+      timeout_seconds: 5
+      failure_threshold: 3
+      success_threshold: 1
+    envs:
+      - key: DATABASE_URL
+        value: ${vetdata-db.DATABASE_URL}
+        scope: RUN_TIME
+      - key: CORS_ORIGINS
+        value: https://app.example.com
+        scope: RUN_TIME
+      - key: CLERK_JWKS_URL
+        value: https://your-clerk-domain/.well-known/jwks.json
+        scope: RUN_TIME
+      - key: CLERK_ISSUER
+        value: https://your-clerk-domain
+        scope: RUN_TIME
+      - key: CLERK_API_URL
+        value: https://api.clerk.com/v1
+        scope: RUN_TIME
+      - key: CLERK_AUTHORIZED_PARTIES
+        value: https://app.example.com
+        scope: RUN_TIME
+      - key: CLERK_SECRET_KEY
+        value: sk_live_replace_me
+        type: secret
+      - key: CLERK_WEBHOOK_SECRET
+        value: whsec_replace_me
+        type: secret
+
+static_sites:
+  - name: frontend
+    github:
+      repo: YOUR_GITHUB_ORG/YOUR_MONOREPO
+      branch: main
+      deploy_on_push: true
+    source_dir: ./frontend
+    build_command: npm ci && npm run build
+    output_dir: dist
+    catchall_document: index.html
+    envs:
+      - key: VITE_API_BASE_URL
+        value: /api/v1
+        scope: BUILD_TIME
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        value: pk_live_replace_me
+        scope: BUILD_TIME
+
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: backend
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /docs
+      component:
+        name: backend
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /redoc
+      component:
+        name: backend
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /openapi.json
+      component:
+        name: backend
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /
+      component:
+        name: frontend

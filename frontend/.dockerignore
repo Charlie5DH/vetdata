@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.vscode
+build-output.txt
+build_output.log
+eslint_output.log
+lint.txt
+.env.local

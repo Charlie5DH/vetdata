@@ -29,7 +29,7 @@ export function CreatePageLayout({
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="border-b px-6 py-4">
+      <div className="border-b px-4 py-4 sm:px-6">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -38,7 +38,9 @@ export function CreatePageLayout({
           >
             <IconArrowLeft className="size-4" />
           </Button>
-          <h1 className="text-xl font-semibold">{title}</h1>
+          <h1 className="min-w-0 text-balance text-xl font-semibold">
+            {title}
+          </h1>
         </div>
       </div>
 
@@ -51,7 +53,10 @@ export function CreatePageLayout({
           </aside>
         )}
 
-        <main className="flex-1 overflow-y-auto p-6" data-scroll-container>
+        <main
+          className="flex-1 overflow-y-auto p-4 sm:p-6"
+          data-scroll-container
+        >
           <div className={cn("mx-auto max-w-2xl space-y-8 pb-12", className)}>
             {children}
           </div>

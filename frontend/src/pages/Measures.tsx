@@ -225,13 +225,13 @@ export default function Measures() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex items-center justify-between"
+          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
           </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
+          <div className="flex w-full flex-wrap items-center gap-3 sm:gap-4 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
               <Label htmlFor="rows-per-page" className="text-sm font-medium">
                 Linhas por página

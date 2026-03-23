@@ -315,8 +315,8 @@ export default function VisaoGeral() {
     <PageLayout
       title="Visão Geral"
       actions={
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <div className="flex h-12 items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-4">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+          <div className="flex h-12 w-full items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-4 sm:w-auto">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Label
               htmlFor="overview-only-alerts"
@@ -332,7 +332,7 @@ export default function VisaoGeral() {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <Label
               htmlFor="overview-species"
               className="text-xs text-muted-foreground"
@@ -342,7 +342,7 @@ export default function VisaoGeral() {
             <Select value={speciesFilter} onValueChange={setSpeciesFilter}>
               <SelectTrigger
                 id="overview-species"
-                className="min-w-44 bg-background"
+                className="w-full bg-background sm:min-w-44"
               >
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
@@ -357,7 +357,7 @@ export default function VisaoGeral() {
             </Select>
           </div>
 
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="w-full sm:w-auto">
             <Link to={clinicPath("/treatments")}>Ver sessões</Link>
           </Button>
         </div>

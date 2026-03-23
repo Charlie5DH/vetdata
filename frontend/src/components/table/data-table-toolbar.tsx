@@ -38,9 +38,9 @@ export function DataTableToolbar<TData>({
     (table.getColumn(searchColumn)?.getFilterValue() as string) ?? "";
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="relative">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="relative w-full sm:w-auto">
           <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -48,12 +48,12 @@ export function DataTableToolbar<TData>({
             onChange={(event) =>
               table.getColumn(searchColumn)?.setFilterValue(event.target.value)
             }
-            className="pl-8 w-[250px]"
+            className="w-full max-w-full pl-8 sm:w-[250px]"
           />
         </div>
         {leftExtra}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         {filterOptions && filterOptions.options.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

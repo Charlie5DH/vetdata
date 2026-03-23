@@ -156,8 +156,8 @@ export function OwnerSelectionTable({
         </RadioGroup>
       </div>
 
-      <div className="flex items-center justify-between px-2 pt-2 border-t">
-        <div className="flex items-center gap-8">
+      <div className="flex flex-col gap-3 border-t px-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium">Linhas por pág.</p>
             <Select value={`${pageSize}`} onValueChange={handlePageSizeChange}>
@@ -178,7 +178,7 @@ export function OwnerSelectionTable({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"

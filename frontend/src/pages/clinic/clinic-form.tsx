@@ -164,7 +164,7 @@ export function ClinicForm({
   };
 
   const additionalInfoFields = (
-    <div className="grid gap-6 pb-2 lg:grid-cols-2">
+    <div className="grid gap-6 pb-2 sm:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="clinic-legal-name">Razão social</Label>
         <Input
@@ -216,7 +216,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 lg:col-span-2">
+      <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="clinic-address-line1">Endereço principal</Label>
         <Input
           id="clinic-address-line1"
@@ -229,7 +229,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 lg:col-span-2">
+      <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="clinic-address-line2">Complemento</Label>
         <Input
           id="clinic-address-line2"
@@ -264,7 +264,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 lg:max-w-xs">
+      <div className="space-y-2 sm:max-w-xs">
         <Label htmlFor="clinic-postal-code">CEP</Label>
         <Input
           id="clinic-postal-code"
@@ -275,7 +275,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 lg:col-span-2">
+      <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="clinic-notes">Observações</Label>
         <Textarea
           id="clinic-notes"
@@ -290,8 +290,8 @@ export function ClinicForm({
 
   return (
     <form className="space-y-8" onSubmit={handleSubmit}>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-2 lg:col-span-2">
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
           <div className="flex items-center justify-between gap-3">
             <Label htmlFor="clinic-name">Nome da clínica</Label>
             <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
@@ -353,8 +353,12 @@ export function ClinicForm({
       )}
 
       {canEdit ? (
-        <div className="flex items-center justify-end gap-3">
-          <Button type="submit" disabled={isSubmitting} className="min-w-44">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full sm:w-auto sm:min-w-44"
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 size-4 animate-spin" />

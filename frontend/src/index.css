@@ -300,11 +300,7 @@
         var(--theme-icon-highlight),
         transparent 58%
       ),
-      color-mix(
-        in oklch,
-        var(--app-badge-accent) 12%,
-        var(--card)
-      );
+      color-mix(in oklch, var(--app-badge-accent) 12%, var(--card));
   }
 
   .theme-badge-surface--primary {

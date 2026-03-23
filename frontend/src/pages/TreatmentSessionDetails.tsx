@@ -448,7 +448,7 @@ function LogTableRow({ log, measures, isDeleting, onDelete }: LogRowProps) {
 
   return (
     <TableRow className="text-xs">
-      <TableCell className="sticky left-0 z-10 min-w-44 bg-card text-xs font-medium shadow-[1px_0_0_0_var(--border)]">
+      <TableCell className="sticky left-0 z-10 min-w-32 bg-card text-xs font-medium shadow-[1px_0_0_0_var(--border)] md:min-w-44">
         <div className="leading-tight">
           {new Date(log.logged_at).toLocaleString()}
         </div>
@@ -457,12 +457,15 @@ function LogTableRow({ log, measures, isDeleting, onDelete }: LogRowProps) {
         const value = valueMap.get(measure.id);
 
         return (
-          <TableCell key={measure.id} className="min-w-28 py-2 text-xs">
+          <TableCell
+            key={measure.id}
+            className="min-w-24 py-2 text-xs md:min-w-28"
+          >
             <span className="block truncate">{value ?? "-"}</span>
           </TableCell>
         );
       })}
-      <TableCell className="min-w-40 max-w-56 py-2 text-xs text-muted-foreground">
+      <TableCell className="min-w-32 max-w-40 py-2 text-xs text-muted-foreground md:min-w-40 md:max-w-56">
         <span className="block truncate">{log.notes || "-"}</span>
       </TableCell>
       <TableCell className="sticky right-0 z-10 w-14 bg-card py-1 text-right shadow-[-1px_0_0_0_var(--border)]">
@@ -549,13 +552,13 @@ function TimeSeriesRecordsContent({
         <Table className="min-w-max text-xs">
           <TableHeader className="bg-muted/40">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="sticky left-0 z-20 min-w-44 bg-muted/40 shadow-[1px_0_0_0_var(--border)]">
+              <TableHead className="sticky left-0 z-20 min-w-32 bg-muted/40 shadow-[1px_0_0_0_var(--border)] md:min-w-44">
                 Data/Hora
               </TableHead>
               {measures.map((measure) => (
                 <TableHead
                   key={measure.id}
-                  className="min-w-28 max-w-32 px-2 py-2 text-xs leading-tight whitespace-normal"
+                  className="min-w-24 max-w-28 px-2 py-2 text-xs leading-tight whitespace-normal md:min-w-28 md:max-w-32"
                 >
                   <div>{measure.name}</div>
                   {measure.unit && (
@@ -565,7 +568,7 @@ function TimeSeriesRecordsContent({
                   )}
                 </TableHead>
               ))}
-              <TableHead className="min-w-40 px-2 py-2 text-xs">
+              <TableHead className="min-w-32 px-2 py-2 text-xs md:min-w-40">
                 Notas
               </TableHead>
               <TableHead className="sticky right-0 z-20 w-14 bg-muted/40 text-right shadow-[-1px_0_0_0_var(--border)]">
@@ -884,9 +887,9 @@ export default function TreatmentSessionDetails() {
               </div>
             </div>
             <CardAction>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 {/* View Toggle */}
-                <div className="flex items-center rounded-lg overflow-hidden border">
+                <div className="flex flex-wrap items-center rounded-lg overflow-hidden border">
                   <Button
                     size="sm"
                     variant={viewMode === "list" ? "default" : "ghost"}

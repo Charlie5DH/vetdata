@@ -1,6 +1,7 @@
 export * from "./alert";
 export * from "./auth";
 export * from "./clinic";
+export * from "./chat";
 export * from "./event";
 export * from "./owner";
 export * from "./patient";

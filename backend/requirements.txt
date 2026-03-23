@@ -7,6 +7,7 @@ pydantic-settings
 python-dotenv
 email-validator
 httpx
+openai
 certifi
 PyJWT[crypto]
 svix

@@ -2,6 +2,7 @@ import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
+import { ChatWidget } from "@/components/chat/chat-widget";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import ClinicProfilePage from "@/pages/clinic/ClinicProfilePage";
@@ -118,6 +119,7 @@ function AuthenticatedApp() {
               </div>
             </SidebarInset>
           </div>
+          <ChatWidget />
         </SidebarProvider>
       </div>
     </AuthBootstrap>

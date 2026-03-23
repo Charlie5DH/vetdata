@@ -61,6 +61,17 @@ class Settings(BaseSettings):
         default_factory=list,
         alias="CLERK_AUTHORIZED_PARTIES",
     )
+    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    openai_model: str = Field(default="gpt-5-nano", alias="OPENAI_MODEL")
+    chat_max_tool_calls: int = Field(default=8, alias="CHAT_MAX_TOOL_CALLS")
+    chat_max_message_chars: int = Field(
+        default=4000,
+        alias="CHAT_MAX_MESSAGE_CHARS",
+    )
+    chat_websocket_path: str = Field(
+        default="/api/v1/chat/ws",
+        alias="CHAT_WEBSOCKET_PATH",
+    )
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -89,6 +100,10 @@ class Settings(BaseSettings):
     @property
     def clerk_api_ready(self) -> bool:
         return bool(self.clerk_secret_key)
+
+    @property
+    def openai_ready(self) -> bool:
+        return bool(self.openai_api_key)
 
 
 @lru_cache

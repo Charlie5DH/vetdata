@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
 import { App } from "./App.tsx";
 import { ThemeProvider, initializeAppTheme } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { frontendEnv } from "@/lib/env";
 import { clerkLocalization } from "@/lib/clerk-localization";
 
@@ -31,6 +32,7 @@ function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <App />
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </QueryClientProvider>
     </ClerkProvider>

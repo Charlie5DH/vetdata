@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from app.core.security import require_authenticated_user
 from .alerts import router as alerts_router
 from .auth import router as auth_router
+from .chat import router as chat_router
 from .clinics import router as clinics_router
 from .events import router as events_router
 from .health import router as health_router
@@ -44,3 +45,4 @@ router.include_router(
     tags=["Events"],
     dependencies=[Depends(require_authenticated_user)],
 )
+router.include_router(chat_router, tags=["Chat"])

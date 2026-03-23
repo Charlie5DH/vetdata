@@ -273,10 +273,37 @@ export function ChatWidget() {
     onEvent: handleEvent,
   });
 
+  const persistedStreamingReplacement = useMemo(() => {
+    if (!streamingAssistant) {
+      return null;
+    }
+
+    return (conversationQuery.data?.messages ?? []).find(
+      (message) =>
+        message.id === streamingAssistant.id &&
+        message.role === "assistant" &&
+        (message.status !== "streaming" || Boolean(message.content.trim())),
+    );
+  }, [conversationQuery.data?.messages, streamingAssistant]);
+
+  useEffect(() => {
+    if (!persistedStreamingReplacement) {
+      return;
+    }
+
+    setStreamingAssistant(null);
+    setToolActivity([]);
+  }, [persistedStreamingReplacement]);
+
   const combinedMessages = useMemo(() => {
     const persistedMessages = (conversationQuery.data?.messages ?? []).filter(
       (message) => {
-        if (streamingAssistant && message.id === streamingAssistant.id) {
+        if (
+          streamingAssistant &&
+          message.id === streamingAssistant.id &&
+          message.status === "streaming" &&
+          !message.content.trim()
+        ) {
           return false;
         }
 

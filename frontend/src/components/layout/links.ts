@@ -1,5 +1,6 @@
 import {
   Activity,
+  BookMarked,
   Building2,
   FileText,
   HeartPulse,
@@ -8,6 +9,7 @@ import {
   PawPrint,
   Ruler,
   SlidersHorizontal,
+  Syringe,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -78,6 +80,16 @@ export const appNavigation = {
       title: "Tratamentos",
       url: "/treatments",
       icon: Activity,
+    },
+    {
+      title: "Vacinas",
+      url: "/vaccines",
+      icon: Syringe,
+    },
+    {
+      title: "Catálogo de Vacinas",
+      url: "/vaccines/catalog",
+      icon: BookMarked,
     },
   ] satisfies AppNavItem[],
   navSecondary: [
@@ -269,6 +281,24 @@ const routeMatchers: RouteMatcher[] = [
       section: "Tratamentos",
       page: "Sessoes ativas",
       sectionUrl: "/treatments",
+    },
+  },
+  {
+    type: "startsWith",
+    value: "/vaccines/catalog",
+    meta: {
+      section: "Vacinas",
+      page: "Catálogo",
+      sectionUrl: "/vaccines/catalog",
+    },
+  },
+  {
+    type: "startsWith",
+    value: "/vaccines",
+    meta: {
+      section: "Vacinas",
+      page: "Vacinações",
+      sectionUrl: "/vaccines",
     },
   },
 ];

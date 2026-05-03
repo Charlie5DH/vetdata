@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
 
+import { useAuth } from "@/components/auth/auth-provider";
 import { buildChatWebSocketUrl } from "@/api/chat";
 import type { ChatSendMessagePayload, ChatStreamEvent } from "@/types";
 
@@ -15,7 +15,8 @@ export function useChatWebSocket({
   enabled,
   onEvent,
 }: UseChatWebSocketOptions) {
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { status, accessToken, refresh } = useAuth();
+  const isAuthenticated = status === "authenticated";
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
   const shouldReconnectRef = useRef(false);
@@ -38,11 +39,11 @@ export function useChatWebSocket({
     }
 
     async function connect() {
-      if (!enabled || !isLoaded || !isSignedIn || socketRef.current) {
+      if (!enabled || !isAuthenticated || socketRef.current) {
         return;
       }
 
-      const token = await getToken();
+      const token = accessToken ?? (await refresh());
       if (!token) {
         setConnectionState("error");
         return;
@@ -98,7 +99,7 @@ export function useChatWebSocket({
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [enabled, getToken, isLoaded, isSignedIn]);
+  }, [accessToken, enabled, isAuthenticated, refresh]);
 
   const sendMessage = (payload: ChatSendMessagePayload) => {
     if (socketRef.current?.readyState !== WebSocket.OPEN) {

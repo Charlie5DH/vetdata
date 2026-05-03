@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker version *)",
+      "Bash(docker compose *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o NUL -w \"%{http_code}\\\\n\" http://localhost:8000/docs)",
+      "Bash(Get-ChildItem -Path \"e:\\\\Private\\\\vetdata\\\\backend\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(Get-ChildItem -Path \"e:\\\\Private\\\\vetdata\\\\frontend\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(head -100)",
+      "WebSearch"
+    ]
+  }
+}

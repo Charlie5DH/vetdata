@@ -10,4 +10,4 @@ httpx
 openai
 certifi
 PyJWT[crypto]
-svix
+bcrypt

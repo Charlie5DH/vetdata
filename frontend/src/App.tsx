@@ -24,6 +24,8 @@ import Treatments from "@/pages/Treatments";
 import TutorCreate from "@/pages/TutorCreate";
 import TutorDetails from "@/pages/TutorDetails";
 import Tutors from "@/pages/Tutors";
+import VaccineCatalog from "@/pages/VaccineCatalog";
+import Vaccines from "@/pages/Vaccines";
 import VisaoGeral from "@/pages/VisaoGeral";
 import SignInPage from "@/pages/auth/SignInPage";
 import SignUpPage from "@/pages/auth/SignUpPage";
@@ -114,6 +116,11 @@ function AuthenticatedApp() {
                     element={<MeasureCreate />}
                   />
                   <Route path="/:clinicSlug/measures" element={<Measures />} />
+                  <Route
+                    path="/:clinicSlug/vaccines/catalog"
+                    element={<VaccineCatalog />}
+                  />
+                  <Route path="/:clinicSlug/vaccines" element={<Vaccines />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>

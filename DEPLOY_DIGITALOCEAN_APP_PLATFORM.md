@@ -51,28 +51,25 @@ Backend runtime variables:
 
 1. `DATABASE_URL=${vetdata-db.DATABASE_URL}`
 2. `CORS_ORIGINS=https://YOUR_APP_DOMAIN`
-3. `CLERK_JWKS_URL=https://YOUR_CLERK_DOMAIN/.well-known/jwks.json`
-4. `CLERK_ISSUER=https://YOUR_CLERK_DOMAIN`
-5. `CLERK_API_URL=https://api.clerk.com/v1`
-6. `CLERK_AUTHORIZED_PARTIES=https://YOUR_APP_DOMAIN`
-7. `CLERK_SECRET_KEY=...` as a secret
-8. `CLERK_WEBHOOK_SECRET=...` as a secret
+3. `AUTH_JWT_SECRET=...` as a secret (long random string)
+4. `AUTH_JWT_ACCESS_TTL_MINUTES=15`
+5. `AUTH_JWT_REFRESH_TTL_DAYS=30`
+6. `GOOGLE_OAUTH_CLIENT_ID=...` (optional — enables the Google sign-in button)
 
 Frontend build-time variables:
 
 1. `VITE_API_BASE_URL=/api/v1`
-2. `VITE_CLERK_PUBLISHABLE_KEY=...`
+2. `VITE_GOOGLE_OAUTH_CLIENT_ID=...` (optional)
 
 The backend now normalizes plain Postgres URLs from managed services into the async SQLAlchemy format the app uses, including rewriting `sslmode=require` into the `ssl` query parameter that `asyncpg` expects, so the managed database URL can be passed directly.
 
-## 5. Configure Clerk
+## 5. Configure Google OAuth (optional)
 
-Update Clerk to use the App Platform domain.
+If you want the Google sign-in button to work in production:
 
-1. Add the public app URL to Clerk allowed origins.
-2. Add the same public app URL to redirect and sign-in/sign-up callback settings.
-3. Point the Clerk webhook to `https://YOUR_APP_DOMAIN/api/v1/auth/webhooks/clerk`.
-4. Copy the webhook signing secret into `CLERK_WEBHOOK_SECRET`.
+1. Create an OAuth 2.0 Client ID in Google Cloud Console (type: Web application).
+2. Add `https://YOUR_APP_DOMAIN` to authorized JavaScript origins.
+3. Set both `GOOGLE_OAUTH_CLIENT_ID` (backend) and `VITE_GOOGLE_OAUTH_CLIENT_ID` (frontend) to that client ID.
 
 ## 6. First deploy checks
 
@@ -81,7 +78,7 @@ After the first deployment finishes, verify:
 1. Frontend loads on the default App Platform URL
 2. `https://YOUR_APP_DOMAIN/api/v1/health` returns healthy
 3. `https://YOUR_APP_DOMAIN/docs` loads Swagger
-4. Clerk sign-in works end to end
+4. A clinic owner account can be created (via DB seed) and login with email + password works
 5. Backend migrations completed during startup
 
 ## 7. Domain and DNS

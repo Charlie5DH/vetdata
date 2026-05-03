@@ -1,4 +1,6 @@
 export type AppThemeId =
+  | "ember-paper"
+  | "ember-paper-dark"
   | "amber-minimal"
   | "amethyst-haze"
   | "claude"
@@ -25,7 +27,7 @@ export type ThemeDefinition = {
 
 export const APP_THEME_STORAGE_KEY = "vetdata.theme";
 
-export const DEFAULT_APP_THEME: AppThemeId = "claude";
+export const DEFAULT_APP_THEME: AppThemeId = "ember-paper";
 
 const sharedShadows = {
   "theme-shadow-2xs": "0 1px 2px 0 hsl(0 0% 0% / 0.04)",
@@ -68,6 +70,150 @@ const createTheme = (
 });
 
 export const appThemes: readonly ThemeDefinition[] = [
+  createTheme(
+    "ember-paper",
+    "Ember Paper",
+    "light",
+    "oklch(0.5840 0.1180 35.6)",
+    {
+      background: "oklch(0.9750 0.0090 78)",
+      foreground: "oklch(0.2950 0.0220 55)",
+      card: "oklch(0.9880 0.0060 80)",
+      "card-foreground": "oklch(0.2200 0.0180 55)",
+      popover: "oklch(0.9930 0.0040 85)",
+      "popover-foreground": "oklch(0.2400 0.0200 60)",
+      primary: "oklch(0.5840 0.1180 35.6)",
+      "primary-foreground": "oklch(0.9900 0.0030 80)",
+      secondary: "oklch(0.9280 0.0150 78)",
+      "secondary-foreground": "oklch(0.3800 0.0200 60)",
+      muted: "oklch(0.9430 0.0120 82)",
+      "muted-foreground": "oklch(0.5400 0.0150 70)",
+      accent: "oklch(0.9000 0.0260 70)",
+      "accent-foreground": "oklch(0.2600 0.0230 55)",
+      destructive: "oklch(0.5180 0.1620 28)",
+      "destructive-foreground": "oklch(0.9900 0.0030 80)",
+      success: "oklch(0.5680 0.0980 145)",
+      "success-foreground": "oklch(0.9900 0.0030 80)",
+      warning: "oklch(0.7000 0.1320 75)",
+      "warning-foreground": "oklch(0.2200 0.0180 55)",
+      info: "oklch(0.5560 0.0820 220)",
+      "info-foreground": "oklch(0.9900 0.0030 80)",
+      border: "oklch(0.8800 0.0120 82)",
+      input: "oklch(0.7700 0.0160 80)",
+      ring: "oklch(0.5840 0.1180 35.6 / 0.55)",
+      "chart-1": "oklch(0.5840 0.1180 35.6)",
+      "chart-2": "oklch(0.5560 0.0820 195)",
+      "chart-3": "oklch(0.4920 0.1120 320)",
+      "chart-4": "oklch(0.7280 0.1140 80)",
+      "chart-5": "oklch(0.6240 0.0680 145)",
+      sidebar: "oklch(0.9620 0.0110 80)",
+      "sidebar-foreground": "oklch(0.3400 0.0180 60)",
+      "sidebar-primary": "oklch(0.5840 0.1180 35.6)",
+      "sidebar-primary-foreground": "oklch(0.9900 0.0030 80)",
+      "sidebar-accent": "oklch(0.9100 0.0220 72)",
+      "sidebar-accent-foreground": "oklch(0.2600 0.0230 55)",
+      "sidebar-border": "oklch(0.8950 0.0120 82)",
+      "sidebar-ring": "oklch(0.5840 0.1180 35.6 / 0.45)",
+      "theme-font-sans":
+        "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif",
+      "theme-font-serif":
+        "ui-serif, 'Iowan Old Style', 'Charter', Georgia, Cambria, 'Times New Roman', Times, serif",
+      "theme-font-mono":
+        "ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+      radius: "0.625rem",
+      "theme-tracking-normal": "-0.005em",
+      "theme-icon-stroke-width": "1.6",
+      "theme-icon-accent-mix": "10%",
+      "theme-icon-chip-shadow": "0 12px 28px -22px hsl(28 30% 25% / 0.28)",
+      "theme-shadow-2xs": "0 1px 2px 0 hsl(28 30% 25% / 0.04)",
+      "theme-shadow-xs": "0 1px 2px 0 hsl(28 30% 25% / 0.05)",
+      "theme-shadow-sm":
+        "0 1px 3px 0 hsl(28 30% 25% / 0.06), 0 1px 2px -1px hsl(28 30% 25% / 0.05)",
+      "theme-shadow":
+        "0 2px 5px -1px hsl(28 30% 25% / 0.08), 0 1px 3px -1px hsl(28 30% 25% / 0.06)",
+      "theme-shadow-md":
+        "0 6px 18px -8px hsl(28 30% 25% / 0.12), 0 2px 4px 0 hsl(28 30% 25% / 0.05)",
+      "theme-shadow-lg":
+        "0 12px 28px -14px hsl(28 30% 25% / 0.18), 0 4px 8px -4px hsl(28 30% 25% / 0.08)",
+      "theme-shadow-xl":
+        "0 20px 36px -18px hsl(28 30% 25% / 0.20), 0 6px 12px -6px hsl(28 30% 25% / 0.08)",
+      "theme-shadow-2xl":
+        "0 24px 48px -20px hsl(28 30% 25% / 0.22), 0 6px 12px 0 hsl(28 30% 25% / 0.06)",
+    },
+  ),
+  createTheme(
+    "ember-paper-dark",
+    "Ember Paper Night",
+    "dark",
+    "oklch(0.6720 0.1320 38)",
+    {
+      background: "oklch(0.1880 0.0140 50)",
+      foreground: "oklch(0.9180 0.0140 80)",
+      card: "oklch(0.2240 0.0150 50)",
+      "card-foreground": "oklch(0.9300 0.0120 80)",
+      popover: "oklch(0.2540 0.0160 50)",
+      "popover-foreground": "oklch(0.9400 0.0110 80)",
+      primary: "oklch(0.6720 0.1320 38)",
+      "primary-foreground": "oklch(0.1700 0.0150 50)",
+      secondary: "oklch(0.2880 0.0170 55)",
+      "secondary-foreground": "oklch(0.8800 0.0140 80)",
+      muted: "oklch(0.2640 0.0160 55)",
+      "muted-foreground": "oklch(0.7000 0.0150 75)",
+      accent: "oklch(0.3200 0.0260 50)",
+      "accent-foreground": "oklch(0.9300 0.0120 80)",
+      destructive: "oklch(0.6480 0.1820 28)",
+      "destructive-foreground": "oklch(0.1700 0.0150 50)",
+      success: "oklch(0.6900 0.1080 145)",
+      "success-foreground": "oklch(0.1700 0.0150 50)",
+      warning: "oklch(0.7800 0.1320 75)",
+      "warning-foreground": "oklch(0.1700 0.0150 50)",
+      info: "oklch(0.6800 0.0860 220)",
+      "info-foreground": "oklch(0.1700 0.0150 50)",
+      border: "oklch(0.3200 0.0160 55)",
+      input: "oklch(0.3600 0.0170 55)",
+      ring: "oklch(0.6720 0.1320 38 / 0.65)",
+      "chart-1": "oklch(0.6720 0.1320 38)",
+      "chart-2": "oklch(0.6800 0.0860 195)",
+      "chart-3": "oklch(0.6280 0.1120 320)",
+      "chart-4": "oklch(0.7980 0.1140 80)",
+      "chart-5": "oklch(0.7200 0.0760 145)",
+      sidebar: "oklch(0.2080 0.0140 50)",
+      "sidebar-foreground": "oklch(0.8800 0.0130 80)",
+      "sidebar-primary": "oklch(0.6720 0.1320 38)",
+      "sidebar-primary-foreground": "oklch(0.1700 0.0150 50)",
+      "sidebar-accent": "oklch(0.3000 0.0240 50)",
+      "sidebar-accent-foreground": "oklch(0.9300 0.0120 80)",
+      "sidebar-border": "oklch(0.2880 0.0160 55)",
+      "sidebar-ring": "oklch(0.6720 0.1320 38 / 0.55)",
+      "theme-font-sans":
+        "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif",
+      "theme-font-serif":
+        "ui-serif, 'Iowan Old Style', 'Charter', Georgia, Cambria, 'Times New Roman', Times, serif",
+      "theme-font-mono":
+        "ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+      radius: "0.625rem",
+      "theme-tracking-normal": "-0.005em",
+      "theme-icon-stroke-width": "1.6",
+      "theme-icon-accent-mix": "14%",
+      "theme-icon-highlight": "hsl(0 0% 100% / 0.16)",
+      "theme-icon-inline-shadow": "drop-shadow(0 1px 2px hsl(0 0% 0% / 0.34))",
+      "theme-icon-chip-shadow": "0 14px 32px -20px hsl(0 0% 0% / 0.55)",
+      "theme-shadow-2xs": "0 1px 2px 0 hsl(0 0% 0% / 0.30)",
+      "theme-shadow-xs": "0 1px 2px 0 hsl(0 0% 0% / 0.32)",
+      "theme-shadow-sm":
+        "0 1px 3px 0 hsl(0 0% 0% / 0.35), 0 1px 2px -1px hsl(0 0% 0% / 0.32)",
+      "theme-shadow":
+        "0 2px 5px -1px hsl(0 0% 0% / 0.38), 0 1px 3px -1px hsl(0 0% 0% / 0.32)",
+      "theme-shadow-md":
+        "0 6px 18px -8px hsl(0 0% 0% / 0.55), 0 2px 4px 0 hsl(0 0% 0% / 0.35)",
+      "theme-shadow-lg":
+        "0 12px 28px -14px hsl(0 0% 0% / 0.55), 0 4px 8px -4px hsl(0 0% 0% / 0.38)",
+      "theme-shadow-xl":
+        "0 20px 36px -18px hsl(0 0% 0% / 0.60), 0 6px 12px -6px hsl(0 0% 0% / 0.40)",
+      "theme-shadow-2xl":
+        "0 24px 48px -20px hsl(0 0% 0% / 0.65), 0 6px 12px 0 hsl(0 0% 0% / 0.40)",
+    },
+  ),
   createTheme(
     "amber-minimal",
     "Amber Minimal",

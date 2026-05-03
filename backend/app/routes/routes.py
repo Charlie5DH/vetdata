@@ -9,6 +9,7 @@ from .health import router as health_router
 from .owners_patients import router as owners_patients_router
 from .templates_measures import router as templates_measures_router
 from .treatments import router as treatments_router
+from .vaccines import router as vaccines_router
 
 router = APIRouter()
 
@@ -43,6 +44,11 @@ router.include_router(
 router.include_router(
     events_router,
     tags=["Events"],
+    dependencies=[Depends(require_authenticated_user)],
+)
+router.include_router(
+    vaccines_router,
+    tags=["Vaccines"],
     dependencies=[Depends(require_authenticated_user)],
 )
 router.include_router(chat_router, tags=["Chat"])

@@ -13,12 +13,23 @@ import {
 import type { AppSecondaryNavItem } from "@/components/layout/links";
 import { useClinicPath } from "@/lib/clinic-routes";
 
-function isRouteActive(pathname: string, url: string) {
+function matchesRoute(pathname: string, url: string) {
   if (url === "/") {
     return pathname === "/";
   }
 
   return pathname === url || pathname.startsWith(`${url}/`);
+}
+
+function pickActiveUrl(pathname: string, items: AppSecondaryNavItem[]): string | null {
+  let best: string | null = null;
+  for (const item of items) {
+    if (item.external) continue;
+    if (matchesRoute(pathname, item.url) && (!best || item.url.length > best.length)) {
+      best = item.url;
+    }
+  }
+  return best;
 }
 
 export function NavSecondary({
@@ -30,14 +41,14 @@ export function NavSecondary({
   const { pathname } = useLocation();
   const { clinicPath, stripClinicPath } = useClinicPath();
   const normalizedPathname = stripClinicPath(pathname);
+  const activeUrl = pickActiveUrl(normalizedPathname, items);
 
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isActive =
-              !item.external && isRouteActive(normalizedPathname, item.url);
+            const isActive = !item.external && item.url === activeUrl;
 
             return (
               <SidebarMenuItem key={item.title}>

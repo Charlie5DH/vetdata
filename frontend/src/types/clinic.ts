@@ -60,7 +60,6 @@ export interface ClinicInvitation {
   email: string;
   role: string;
   status: string;
-  clerk_invitation_id?: string | null;
   expires_at?: string | null;
   accepted_at?: string | null;
   created_at: string;
@@ -68,9 +67,8 @@ export interface ClinicInvitation {
 
 export interface ClinicInvitationCreatePayload {
   email: string;
-  redirect_url?: string;
-}
-
-export interface ClinicInvitationResendPayload {
-  redirect_url?: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
 }

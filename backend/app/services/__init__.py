@@ -8,16 +8,21 @@ from .clinic_service import (
     get_pending_clinic_invitations,
     get_primary_clinic_membership,
     remove_clinic_member,
-    reconcile_pending_clinic_invitation,
-    resend_clinic_invitation,
     require_clinic_owner_membership,
     update_current_clinic,
 )
 from .event_recorder import record_event
 from .user_service import (
-    deactivate_user_by_clerk_id,
-    get_user_by_clerk_id,
+    apply_google_profile_fields,
+    attach_google_identity,
+    create_google_user,
+    create_invited_user,
+    create_self_signup_user,
+    get_user_by_email,
+    get_user_by_google_sub,
+    get_user_by_id,
     get_user_context,
-    sync_user_from_clerk,
-    upsert_user_from_clerk_payload,
+    touch_last_sign_in,
+    update_password,
+    update_profile,
 )

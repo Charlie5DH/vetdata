@@ -14,12 +14,14 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    clerk_user_id = Column(String, nullable=False, unique=True, index=True)
     email = Column(String, nullable=False, unique=True, index=True)
+    password_hash = Column(String, nullable=True)
+    google_sub = Column(String, nullable=True, unique=True, index=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
+    crmv = Column(String, nullable=True)
     primary_clinic_id = Column(
         UUID(as_uuid=True),
         ForeignKey("clinics.id"),
@@ -28,6 +30,7 @@ class User(Base):
     is_active = Column(Boolean, nullable=False,
                        default=True, server_default="true")
     last_sign_in_at = Column(DateTime(timezone=True), nullable=True)
+    password_changed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True),
                         server_default=NOW_SQL_EXPRESSION, nullable=False)
     updated_at = Column(
@@ -53,6 +56,11 @@ class User(Base):
         back_populates="inviter_user",
         foreign_keys="ClinicInvitation.inviter_user_id",
     )
+    refresh_tokens = relationship(
+        "AuthRefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     @property
     def display_name(self) -> str:
@@ -60,3 +68,12 @@ class User(Base):
             part for part in [self.first_name, self.last_name] if part
         ).strip()
         return full_name or self.email
+
+    @property
+    def auth_methods(self) -> list[str]:
+        methods: list[str] = []
+        if self.password_hash:
+            methods.append("password")
+        if self.google_sub:
+            methods.append("google")
+        return methods

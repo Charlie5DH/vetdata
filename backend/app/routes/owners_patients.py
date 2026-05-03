@@ -8,7 +8,7 @@ from uuid import UUID
 
 from app.core.database import get_db
 from app.core.security import require_clinic_user
-from app.models import Owner, Patient, TreatmentSession, Template, TemplateMeasure
+from app.models import Owner, Patient, PatientVaccination, TreatmentSession, Template, TemplateMeasure, Vaccine
 from app.models.user import User
 from app.schemas import OwnerCreate, OwnerResponse, PatientCreate, PatientResponse, PatientUpdate
 from app.services import record_event
@@ -102,7 +102,10 @@ async def create_patient(patient: PatientCreate, current_user: CurrentClinicUser
     if owner is None:
         raise HTTPException(status_code=404, detail=OWNER_NOT_FOUND)
 
-    db_patient = Patient(**patient.model_dump())
+    payload = patient.model_dump()
+    initial_vaccinations = payload.pop("initial_vaccinations", None) or []
+
+    db_patient = Patient(**payload)
     db.add(db_patient)
     await db.flush()
 
@@ -120,6 +123,38 @@ async def create_patient(patient: PatientCreate, current_user: CurrentClinicUser
             "breed": db_patient.breed,
         },
     )
+
+    if initial_vaccinations:
+        vaccine_ids = {entry["vaccine_id"] for entry in initial_vaccinations}
+        visible = await db.execute(
+            select(Vaccine.id).where(
+                Vaccine.id.in_(vaccine_ids),
+                (Vaccine.clinic_id.is_(None))
+                | (Vaccine.clinic_id == current_user.primary_clinic_id),
+            )
+        )
+        visible_ids = {row[0] for row in visible.all()}
+        for entry in initial_vaccinations:
+            if entry["vaccine_id"] not in visible_ids:
+                continue
+            record = PatientVaccination(patient_id=db_patient.id, **entry)
+            db.add(record)
+            await db.flush()
+            await record_event(
+                db,
+                patient_id=db_patient.id,
+                event_type="vaccine_administered",
+                source_type="vaccination",
+                source_id=record.id,
+                title="Vacinação registrada",
+                occurred_at=record.applied_at,
+                details={
+                    "vaccine_id": str(record.vaccine_id),
+                    "dose_number": record.dose_number,
+                    "from": "patient_creation",
+                },
+            )
+
     await db.commit()
 
     # Re-query to eager load relationships for the response

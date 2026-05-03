@@ -1,4 +1,3 @@
-import asyncio
 import json
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, TypeVar
@@ -17,7 +16,6 @@ from app.routes.clinics import (
     invite_clinic_member,
     list_my_clinic_invitations,
     list_my_clinic_members,
-    resend_my_clinic_invitation,
     update_my_clinic,
 )
 from app.routes.events import list_events, list_patient_events
@@ -51,7 +49,6 @@ from app.routes.treatments import (
 from app.schemas import (
     ClinicCreate,
     ClinicInvitationCreate,
-    ClinicInvitationResend,
     ClinicUpdate,
     MeasureCreate,
     MeasureUpdate,
@@ -178,9 +175,8 @@ class ToolInputCreateConversationClinic(BaseModel):
     notes: str | None = None
 
 
-async def _execute_get_me(_arguments: dict[str, Any], current_user: User, _db: AsyncSession):
-    await asyncio.sleep(0)
-    return jsonable_encoder(build_user_response(current_user))
+async def _execute_get_me(_arguments: dict[str, Any], current_user: User, db: AsyncSession):
+    return jsonable_encoder(await build_user_response(db, current_user))
 
 
 async def _execute_list_owners(arguments: dict[str, Any], current_user: User, db: AsyncSession):
@@ -376,14 +372,6 @@ async def _execute_invite_clinic_member(arguments: dict[str, Any], current_user:
     return jsonable_encoder(result)
 
 
-async def _execute_resend_clinic_invitation(arguments: dict[str, Any], current_user: User, db: AsyncSession):
-    payload = arguments.copy()
-    invitation_id = _ensure_uuid(payload.pop("invitation_id"))
-    body = _normalize_model_payload(ClinicInvitationResend, payload)
-    result = await resend_my_clinic_invitation(invitation_id=invitation_id, payload=body, current_user=current_user, db=db)
-    return jsonable_encoder(result)
-
-
 def build_tool_definitions() -> dict[str, ChatToolDefinition]:
     return {
         "get_current_user": ChatToolDefinition(
@@ -512,21 +500,6 @@ def build_tool_definitions() -> dict[str, ChatToolDefinition]:
         "create_clinic": ChatToolDefinition("create_clinic", "Cria uma nova clínica para o usuário atual.", _json_schema(ClinicCreate), _execute_create_clinic, True),
         "update_clinic": ChatToolDefinition("update_clinic", "Atualiza os dados da clínica atual.", _json_schema(ClinicUpdate), _execute_update_clinic, True),
         "invite_clinic_member": ChatToolDefinition("invite_clinic_member", "Convida um usuário para a clínica atual.", _json_schema(ClinicInvitationCreate), _execute_invite_clinic_member, True),
-        "resend_clinic_invitation": ChatToolDefinition(
-            "resend_clinic_invitation",
-            "Reenvia um convite pendente da clínica. Exige invitation_id.",
-            {
-                "type": "object",
-                "properties": {
-                    "invitation_id": {"type": "string", "format": "uuid"},
-                    **json.loads(json.dumps(_json_schema(ClinicInvitationResend))).get("properties", {}),
-                },
-                "required": ["invitation_id"],
-                "additionalProperties": False,
-            },
-            _execute_resend_clinic_invitation,
-            True,
-        ),
     }
 
 

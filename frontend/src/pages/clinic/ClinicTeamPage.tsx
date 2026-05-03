@@ -15,7 +15,6 @@ import {
   Loader2,
   MailPlus,
   MoreHorizontal,
-  RefreshCw,
   Trash2,
   ShieldCheck,
   UserRoundPlus,
@@ -31,7 +30,6 @@ import {
   useMyClinicInvitations,
   useMyClinicMembers,
   useRemoveClinicMember,
-  useResendClinicInvitation,
 } from "@/api/clinics";
 import {
   AlertDialog,
@@ -99,6 +97,20 @@ type InvitationRow = {
   createdAt: string;
 };
 
+type InviteFormState = {
+  email: string;
+  first_name: string;
+  last_name: string;
+  password: string;
+};
+
+const EMPTY_INVITE: InviteFormState = {
+  email: "",
+  first_name: "",
+  last_name: "",
+  password: "",
+};
+
 const clinicTeamColumns: ColumnDef<TeamRow>[] = [
   {
     id: "member",
@@ -148,10 +160,9 @@ export default function ClinicTeamPage() {
   const membersQuery = useMyClinicMembers();
   const invitationsQuery = useMyClinicInvitations();
   const inviteMember = useInviteClinicMember();
-  const resendInvitation = useResendClinicInvitation();
   const cancelInvitation = useCancelClinicInvitation();
   const removeMember = useRemoveClinicMember();
-  const [email, setEmail] = useState("");
+  const [inviteForm, setInviteForm] = useState<InviteFormState>(EMPTY_INVITE);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [memberPendingRemoval, setMemberPendingRemoval] =
     useState<TeamRow | null>(null);
@@ -159,11 +170,6 @@ export default function ClinicTeamPage() {
     useState<InvitationRow | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const { clinicPath } = useClinicPath();
-
-  const inviteRedirectUrl = useMemo(
-    () => `${globalThis.location.origin}/sign-up`,
-    [],
-  );
 
   const canInvite = currentUserQuery.data?.clinic_role === "clinic_owner";
 
@@ -221,19 +227,6 @@ export default function ClinicTeamPage() {
     } catch (error) {
       console.error(error);
       toast.error("Não foi possível copiar o e-mail.");
-    }
-  };
-
-  const handleResendInvitation = async (invitationId: string) => {
-    try {
-      await resendInvitation.mutateAsync({
-        invitationId,
-        payload: { redirect_url: inviteRedirectUrl },
-      });
-      toast.success("Convite reenviado com sucesso.");
-    } catch (error) {
-      console.error(error);
-      toast.error("Não foi possível reenviar o convite.");
     }
   };
 
@@ -326,15 +319,6 @@ export default function ClinicTeamPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() =>
-                              void handleResendInvitation(invitation.id)
-                            }
-                            disabled={resendInvitation.isPending}
-                          >
-                            <RefreshCw className="mr-2 size-4" />
-                            Reenviar convite
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
                               setInvitationPendingCancellation(invitation)
                             }
                             disabled={cancelInvitation.isPending}
@@ -357,35 +341,45 @@ export default function ClinicTeamPage() {
   } else {
     invitationsSection = (
       <p className="text-sm text-muted-foreground">
-        Não há convites pendentes no momento.
+        Nenhum convite registrado ainda.
       </p>
     );
   }
 
+  const inviteValid =
+    inviteForm.email.trim().length > 0 &&
+    inviteForm.password.trim().length >= 8;
+
   const handleInvite = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const normalizedEmail = email.trim();
+    const normalizedEmail = inviteForm.email.trim().toLowerCase();
     if (!normalizedEmail) {
-      toast.error("Informe o e-mail do veterinário.");
+      toast.error("Informe o e-mail do membro.");
+      return;
+    }
+    if (inviteForm.password.length < 8) {
+      toast.error("A senha precisa ter pelo menos 8 caracteres.");
       return;
     }
 
     try {
       await inviteMember.mutateAsync({
         email: normalizedEmail,
-        redirect_url: inviteRedirectUrl,
+        password: inviteForm.password,
+        first_name: inviteForm.first_name.trim() || undefined,
+        last_name: inviteForm.last_name.trim() || undefined,
       });
-      setEmail("");
+      setInviteForm(EMPTY_INVITE);
       setInviteDialogOpen(false);
       toast.success(
         clinicQuery.data
-          ? `Convite enviado para ${normalizedEmail} na clínica ${clinicQuery.data.name}.`
-          : `Convite enviado para ${normalizedEmail}.`,
+          ? `${normalizedEmail} adicionado à clínica ${clinicQuery.data.name}. Compartilhe a senha definida com a pessoa.`
+          : `${normalizedEmail} adicionado à clínica. Compartilhe a senha definida com a pessoa.`,
       );
     } catch (error) {
       console.error(error);
-      toast.error("Não foi possível enviar o convite.");
+      toast.error("Não foi possível criar o convite.");
     }
   };
 
@@ -398,7 +392,13 @@ export default function ClinicTeamPage() {
             <Link to={clinicPath("/clinic")}>Ver cadastro da clínica</Link>
           </Button>
           {canInvite && (
-            <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+            <Dialog
+              open={inviteDialogOpen}
+              onOpenChange={(open) => {
+                setInviteDialogOpen(open);
+                if (!open) setInviteForm(EMPTY_INVITE);
+              }}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <UserRoundPlus className="mr-2 size-4" />
@@ -407,46 +407,101 @@ export default function ClinicTeamPage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Convidar membro da equipe</DialogTitle>
+                  <DialogTitle>Adicionar membro da equipe</DialogTitle>
                   <DialogDescription>
-                    Envie um convite por e-mail para adicionar um novo
-                    profissional à clínica.
+                    Defina o email e a senha inicial. A pessoa fará login
+                    diretamente com esses dados — compartilhe a senha por um
+                    canal seguro.
                   </DialogDescription>
                 </DialogHeader>
 
-                <form className="space-y-5" onSubmit={handleInvite}>
+                <form className="space-y-4" onSubmit={handleInvite}>
                   <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
                     {clinicQuery.data
-                      ? `O convite será vinculado à clínica ${clinicQuery.data.name}.`
-                      : "O convite será vinculado à clínica atual."}
+                      ? `O acesso será vinculado à clínica ${clinicQuery.data.name}.`
+                      : "O acesso será vinculado à clínica atual."}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="invite-first-name">Nome</Label>
+                      <Input
+                        id="invite-first-name"
+                        value={inviteForm.first_name}
+                        onChange={(event) =>
+                          setInviteForm((prev) => ({
+                            ...prev,
+                            first_name: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invite-last-name">Sobrenome</Label>
+                      <Input
+                        id="invite-last-name"
+                        value={inviteForm.last_name}
+                        onChange={(event) =>
+                          setInviteForm((prev) => ({
+                            ...prev,
+                            last_name: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="invite-email">E-mail do veterinário</Label>
+                    <Label htmlFor="invite-email">E-mail</Label>
                     <Input
                       id="invite-email"
                       type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
+                      value={inviteForm.email}
+                      onChange={(event) =>
+                        setInviteForm((prev) => ({
+                          ...prev,
+                          email: event.target.value,
+                        }))
+                      }
                       placeholder="vet@clinica.com"
                       autoFocus
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="invite-password">Senha inicial</Label>
+                    <Input
+                      id="invite-password"
+                      type="text"
+                      value={inviteForm.password}
+                      onChange={(event) =>
+                        setInviteForm((prev) => ({
+                          ...prev,
+                          password: event.target.value,
+                        }))
+                      }
+                      placeholder="Mínimo 8 caracteres"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Compartilhe esta senha com a pessoa convidada — ela poderá
+                      trocá-la depois pelo perfil.
+                    </p>
+                  </div>
+
                   <DialogFooter>
                     <Button
                       type="submit"
-                      disabled={inviteMember.isPending || !email.trim()}
+                      disabled={inviteMember.isPending || !inviteValid}
                     >
                       {inviteMember.isPending ? (
                         <>
                           <Loader2 className="mr-2 size-4 animate-spin" />
-                          Enviando convite...
+                          Adicionando...
                         </>
                       ) : (
                         <>
                           <MailPlus className="mr-2 size-4" />
-                          Enviar convite
+                          Adicionar membro
                         </>
                       )}
                     </Button>
@@ -591,9 +646,9 @@ export default function ClinicTeamPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Convites pendentes</CardTitle>
+            <CardTitle>Histórico de convites</CardTitle>
             <CardDescription>
-              Acompanhe os acessos enviados e aguarde a conclusão do cadastro.
+              Lista dos convites criados para esta clínica.
             </CardDescription>
           </CardHeader>
           <CardContent>{invitationsSection}</CardContent>
@@ -639,11 +694,11 @@ export default function ClinicTeamPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar convite pendente?</AlertDialogTitle>
+            <AlertDialogTitle>Cancelar convite?</AlertDialogTitle>
             <AlertDialogDescription>
               {invitationPendingCancellation
-                ? `O acesso enviado para ${invitationPendingCancellation.email} será invalidado e o convite sairá da lista de pendências.`
-                : "O convite selecionado será invalidado e removido da lista de pendências."}
+                ? `O registro de convite para ${invitationPendingCancellation.email} será marcado como cancelado.`
+                : "O convite selecionado será cancelado."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

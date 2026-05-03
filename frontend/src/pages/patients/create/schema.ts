@@ -1,5 +1,10 @@
 import * as z from "zod";
 
+export interface InitialVaccinationFormValue {
+  vaccine_id: string;
+  applied_at?: string;
+}
+
 export interface PatientCreateFormValues {
   name: string;
   species: string;
@@ -9,6 +14,8 @@ export interface PatientCreateFormValues {
   weight_kg?: number;
   notes?: string;
   motive?: string;
+  vaccine_notes?: string;
+  initial_vaccinations?: InitialVaccinationFormValue[];
   template_id?: string;
   owner_mode: "existing" | "new";
   owner_id?: string;
@@ -53,6 +60,15 @@ export const patientCreateSchema = z
     weight_kg: optionalNumber,
     notes: z.string().optional(),
     motive: z.string().optional(),
+    vaccine_notes: z.string().optional(),
+    initial_vaccinations: z
+      .array(
+        z.object({
+          vaccine_id: z.string(),
+          applied_at: z.string().optional(),
+        }),
+      )
+      .optional(),
     template_id: z.string().optional(),
     owner_mode: z.enum(["existing", "new"]),
     owner_id: z.string().optional(),
@@ -123,6 +139,7 @@ export const patientCreateStepFields = {
     "age_months",
   ] as const,
   treatment: ["motive", "notes", "template_id"] as const,
+  vaccines: ["vaccine_notes", "initial_vaccinations"] as const,
 };
 
 export const patientCreateDefaults: PatientCreateFormValues = {
@@ -134,6 +151,8 @@ export const patientCreateDefaults: PatientCreateFormValues = {
   weight_kg: undefined,
   notes: "",
   motive: "",
+  vaccine_notes: "",
+  initial_vaccinations: [],
   owner_mode: "new",
   owner_id: "",
   new_owner_first_name: "",

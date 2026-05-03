@@ -6,6 +6,9 @@ import uuid
 from app.core.database import Base
 
 
+CASCADE_ALL_DELETE_ORPHAN = "all, delete-orphan"
+
+
 class Patient(Base):
     __tablename__ = "patients"
 
@@ -18,6 +21,7 @@ class Patient(Base):
     weight_kg = Column(Numeric(precision=5, scale=2), nullable=True)
     notes = Column(Text, nullable=True)
     motive = Column(Text, nullable=True)
+    vaccine_notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=text("now()"))
 
     owner_id = Column(UUID(as_uuid=True), ForeignKey(
@@ -27,9 +31,11 @@ class Patient(Base):
     treatment_sessions = relationship(
         "TreatmentSession", back_populates="patient")
     events = relationship(
-        "Event", back_populates="patient", cascade="all, delete-orphan")
+        "Event", back_populates="patient", cascade=CASCADE_ALL_DELETE_ORPHAN)
     alerts = relationship(
-        "Alert", back_populates="patient", cascade="all, delete-orphan")
+        "Alert", back_populates="patient", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    vaccinations = relationship(
+        "PatientVaccination", back_populates="patient", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
     @property
     def total_sessions(self):

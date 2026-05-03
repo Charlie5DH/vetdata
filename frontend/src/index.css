@@ -62,6 +62,13 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -170,6 +177,13 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.568 0.098 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.7 0.132 75);
+  --warning-foreground: oklch(0.205 0 0);
+  --info: oklch(0.556 0.082 220);
+  --info-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -226,6 +240,13 @@
   --accent: oklch(0.371 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.69 0.108 145);
+  --success-foreground: oklch(0.17 0.015 50);
+  --warning: oklch(0.78 0.132 75);
+  --warning-foreground: oklch(0.17 0.015 50);
+  --info: oklch(0.68 0.086 220);
+  --info-foreground: oklch(0.17 0.015 50);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -242,6 +263,19 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  body {
+    letter-spacing: var(--theme-tracking-normal);
+  }
+
+  [data-theme="ember-paper"] :is(h1, h2, h3),
+  [data-theme="ember-paper-dark"] :is(h1, h2, h3) {
+    font-family: var(--theme-font-serif);
+    font-weight: 600;
+    letter-spacing: -0.012em;
+  }
 }
 
 @layer components {

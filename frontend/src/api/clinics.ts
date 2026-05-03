@@ -7,7 +7,6 @@ import type {
   ClinicCreatePayload,
   ClinicInvitation,
   ClinicInvitationCreatePayload,
-  ClinicInvitationResendPayload,
   ClinicMember,
   ClinicUpdatePayload,
 } from "@/types";
@@ -50,17 +49,6 @@ export async function inviteClinicMember(
 ) {
   const { data } = await api.post<ClinicInvitation>(
     "/clinics/me/invitations",
-    payload,
-  );
-  return data;
-}
-
-export async function resendClinicInvitation(
-  invitationId: string,
-  payload: ClinicInvitationResendPayload,
-) {
-  const { data } = await api.post<ClinicInvitation>(
-    `/clinics/me/invitations/${invitationId}/resend`,
     payload,
   );
   return data;
@@ -133,28 +121,14 @@ export function useInviteClinicMember() {
   return useMutation({
     mutationFn: inviteClinicMember,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: myClinicInvitationsQueryKey,
-      });
-    },
-  });
-}
-
-export function useResendClinicInvitation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      invitationId,
-      payload,
-    }: {
-      invitationId: string;
-      payload: ClinicInvitationResendPayload;
-    }) => resendClinicInvitation(invitationId, payload),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: myClinicInvitationsQueryKey,
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: myClinicInvitationsQueryKey,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: myClinicMembersQueryKey,
+        }),
+      ]);
     },
   });
 }

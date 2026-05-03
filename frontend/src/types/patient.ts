@@ -1,4 +1,5 @@
 import type { Owner } from "./owner";
+import type { InitialVaccinationCreate } from "./vaccine";
 
 export interface PatientBase {
   name: string;
@@ -9,10 +10,13 @@ export interface PatientBase {
   weight_kg?: number | null;
   notes?: string | null;
   motive?: string | null;
+  vaccine_notes?: string | null;
   owner_id: string;
 }
 
-export type PatientCreate = PatientBase;
+export interface PatientCreate extends PatientBase {
+  initial_vaccinations?: InitialVaccinationCreate[];
+}
 
 export interface Patient extends PatientBase {
   id: string;

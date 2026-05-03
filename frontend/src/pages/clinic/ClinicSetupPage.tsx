@@ -1,76 +1,81 @@
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2 } from "lucide-react";
-import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { useState } from "react";
 
-import { useCurrentUser } from "@/api/auth";
-import { useCreateClinic } from "@/api/clinics";
+import { currentUserQueryKey, useCurrentUser } from "@/api/auth";
+import { createClinic } from "@/api/clinics";
+import { AuthShell } from "@/components/auth/auth-shell";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ClinicForm, emptyClinicFormValues } from "@/pages/clinic/clinic-form";
-import type { ClinicCreatePayload } from "@/types";
+  ClinicEssentialsForm,
+  type ClinicEssentialsValues,
+} from "@/components/auth/clinic-essentials-form";
 import { buildClinicPath, slugifyClinicName } from "@/lib/clinic-routes";
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const detail = error.response?.data?.detail;
+    if (typeof detail === "string") return detail;
+  }
+  return fallback;
+}
 
 export default function ClinicSetupPage() {
   const navigate = useNavigate();
-  const currentUserQuery = useCurrentUser();
-  const createClinic = useCreateClinic();
-  const initialValues = useMemo(() => emptyClinicFormValues(), []);
+  const queryClient = useQueryClient();
+  const { data: currentUser } = useCurrentUser();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = async (payload: ClinicCreatePayload) => {
-    try {
-      const clinic = await createClinic.mutateAsync(payload);
-      toast.success("Clínica criada com sucesso.");
-      navigate(buildClinicPath(slugifyClinicName(clinic.name), "/clinic"), {
+  const createClinicMutation = useMutation({
+    mutationFn: createClinic,
+    onSuccess: async (clinic) => {
+      await queryClient.invalidateQueries({ queryKey: currentUserQueryKey });
+      navigate(buildClinicPath(slugifyClinicName(clinic.name)), {
         replace: true,
       });
+    },
+  });
+
+  const handleSubmit = async (values: ClinicEssentialsValues) => {
+    setSubmitError(null);
+    try {
+      await createClinicMutation.mutateAsync({
+        name: values.name.trim(),
+        contact_email: values.contact_email.trim() || undefined,
+        contact_phone: values.contact_phone.trim() || undefined,
+        city: values.city.trim() || undefined,
+        state: values.state.trim().toUpperCase() || undefined,
+      });
     } catch (error) {
-      console.error(error);
-      toast.error("Não foi possível concluir o cadastro da clínica.");
+      setSubmitError(
+        extractErrorMessage(error, "Não foi possível criar a clínica."),
+      );
     }
   };
 
-  const user = currentUserQuery.data;
-
   return (
-    <div className="relative flex min-h-svh items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--primary)_14%,white)_0,transparent_38%),linear-gradient(135deg,color-mix(in_oklch,var(--card)_90%,var(--primary)_10%),color-mix(in_oklch,var(--background)_88%,var(--chart-1)_12%))] px-6 py-10">
-      <Card className="w-full max-w-4xl border-white/50 bg-background/92 backdrop-blur">
-        <CardHeader className="space-y-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Building2 className="size-6" />
-          </div>
-          <div className="space-y-2">
-            <CardTitle className="text-3xl">Cadastre sua clínica</CardTitle>
-            <CardDescription className="text-base leading-relaxed">
-              Antes de liberar o painel, precisamos registrar os dados
-              principais da clínica para estruturar sua operação no VetData.
-              {user ? ` Esta conta será vinculada a ${user.email}.` : ""}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
-              Você será definido como responsável inicial da clínica e poderá
-              convidar outros veterinários depois. Todos esses dados poderão ser
-              atualizados mais tarde na página da clínica.
-            </div>
+    <AuthShell swap={null} wide>
+      <div className="auth-mode-fade">
+        <div className="auth-heading">
+          <h1>
+            Sua <em>clínica</em>
+          </h1>
+          <p>
+            {currentUser?.first_name
+              ? `Olá, ${currentUser.first_name}. Vamos cadastrar sua clínica.`
+              : "Apenas o essencial — você pode completar o resto depois."}
+          </p>
+        </div>
 
-            <ClinicForm
-              initialValues={initialValues}
-              onSubmit={handleSubmit}
-              isSubmitting={createClinic.isPending}
-              submitLabel="Criar clínica"
-              submitPendingLabel="Criando clínica..."
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        <ClinicEssentialsForm
+          prefilledEmail={currentUser?.email ?? null}
+          submitting={createClinicMutation.isPending}
+          submitLabel="Criar clínica"
+          submitPendingLabel="Criando…"
+          onSubmit={handleSubmit}
+          externalError={submitError}
+        />
+      </div>
+    </AuthShell>
   );
 }

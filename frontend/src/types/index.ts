@@ -7,3 +7,4 @@ export * from "./owner";
 export * from "./patient";
 export * from "./template";
 export * from "./treatment";
+export * from "./vaccine";

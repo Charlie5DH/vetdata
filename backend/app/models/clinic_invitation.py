@@ -20,7 +20,6 @@ class ClinicInvitation(Base):
                   server_default="veterinarian")
     status = Column(String, nullable=False, default="pending",
                     server_default="pending")
-    clerk_invitation_id = Column(String, nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
     accepted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True),

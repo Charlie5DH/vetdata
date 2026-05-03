@@ -10,7 +10,6 @@ from app.models import User
 from app.schemas import (
     ClinicCreate,
     ClinicInvitationCreate,
-    ClinicInvitationResend,
     ClinicInvitationResponse,
     ClinicMemberResponse,
     ClinicResponse,
@@ -24,7 +23,6 @@ from app.services import (
     get_current_clinic_members,
     get_pending_clinic_invitations,
     remove_clinic_member,
-    resend_clinic_invitation,
     update_current_clinic,
 )
 
@@ -84,26 +82,11 @@ async def invite_clinic_member(
     return await create_clinic_invitation(
         db,
         current_user,
-        payload.email,
-        payload.redirect_url,
-    )
-
-
-@router.post(
-    "/clinics/me/invitations/{invitation_id}/resend",
-    response_model=ClinicInvitationResponse,
-)
-async def resend_my_clinic_invitation(
-    invitation_id: UUID,
-    payload: ClinicInvitationResend,
-    current_user: CurrentUser,
-    db: DbSession,
-):
-    return await resend_clinic_invitation(
-        db,
-        current_user,
-        invitation_id,
-        payload.redirect_url,
+        email=payload.email,
+        password=payload.password,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        role=payload.role or "veterinarian",
     )
 
 

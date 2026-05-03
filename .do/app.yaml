@@ -37,24 +37,18 @@ services:
       - key: CORS_ORIGINS
         value: https://app.example.com
         scope: RUN_TIME
-      - key: CLERK_JWKS_URL
-        value: https://your-clerk-domain/.well-known/jwks.json
-        scope: RUN_TIME
-      - key: CLERK_ISSUER
-        value: https://your-clerk-domain
-        scope: RUN_TIME
-      - key: CLERK_API_URL
-        value: https://api.clerk.com/v1
-        scope: RUN_TIME
-      - key: CLERK_AUTHORIZED_PARTIES
-        value: https://app.example.com
-        scope: RUN_TIME
-      - key: CLERK_SECRET_KEY
-        value: sk_live_replace_me
+      - key: AUTH_JWT_SECRET
+        value: replace_with_long_random_secret
         type: secret
-      - key: CLERK_WEBHOOK_SECRET
-        value: whsec_replace_me
-        type: secret
+      - key: AUTH_JWT_ACCESS_TTL_MINUTES
+        value: "15"
+        scope: RUN_TIME
+      - key: AUTH_JWT_REFRESH_TTL_DAYS
+        value: "30"
+        scope: RUN_TIME
+      - key: GOOGLE_OAUTH_CLIENT_ID
+        value: ""
+        scope: RUN_TIME
 
 static_sites:
   - name: frontend
@@ -70,8 +64,8 @@ static_sites:
       - key: VITE_API_BASE_URL
         value: /api/v1
         scope: BUILD_TIME
-      - key: VITE_CLERK_PUBLISHABLE_KEY
-        value: pk_live_replace_me
+      - key: VITE_GOOGLE_OAUTH_CLIENT_ID
+        value: ""
         scope: BUILD_TIME
 
 ingress:

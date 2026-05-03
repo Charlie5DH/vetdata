@@ -42,7 +42,10 @@ import {
   IconChevronUp,
   IconActivity,
   IconHistory,
+  IconVaccine,
 } from "@tabler/icons-react";
+import { usePatientVaccinations } from "@/api/vaccines";
+import { VaccineRecordDialog } from "@/components/vaccines/vaccine-record-dialog";
 import { toast } from "sonner";
 import {
   Table,
@@ -62,7 +65,7 @@ import {
 import { columns as treatmentColumns } from "@/pages/treatments/columns";
 import { themeAccentClasses } from "@/lib/theme-styles";
 import { useState } from "react";
-import type { Patient, TreatmentSession } from "@/types";
+import type { Patient, PatientVaccination, TreatmentSession } from "@/types";
 
 function NewTreatmentDialog({ patientId }: { patientId: string }) {
   const [open, setOpen] = useState(false);
@@ -239,8 +242,123 @@ function PatientCharacteristicsCard({
               <p className="text-sm text-muted-foreground">{patient.notes}</p>
             </div>
           )}
+          {patient.vaccine_notes && (
+            <div className="mt-4 flex flex-col space-y-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Histórico de vacinas
+              </span>
+              <p className="text-sm text-muted-foreground">
+                {patient.vaccine_notes}
+              </p>
+            </div>
+          )}
         </CardContent>
       )}
+    </Card>
+  );
+}
+
+function VaccinationsCard({ patientId }: { patientId: string }) {
+  const { data: vaccinations, isLoading } = usePatientVaccinations(patientId);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<PatientVaccination | null>(null);
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className={`rounded-lg p-2 ${themeAccentClasses.chart3.icon}`}>
+            <IconVaccine className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle>Vacinas</CardTitle>
+            <CardDescription>
+              {vaccinations?.length ?? 0} registro(s) de vacinação
+            </CardDescription>
+          </div>
+        </div>
+        <CardAction>
+          <Button size="sm" onClick={() => setDialogOpen(true)}>
+            <IconPlus className="mr-2 h-4 w-4" />
+            Adicionar vacina
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="text-sm text-muted-foreground">Carregando...</div>
+        ) : vaccinations && vaccinations.length > 0 ? (
+          <div className="rounded-md border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Vacina</TableHead>
+                  <TableHead>Dose</TableHead>
+                  <TableHead>Aplicada em</TableHead>
+                  <TableHead>Próximo reforço</TableHead>
+                  <TableHead>Lote</TableHead>
+                  <TableHead className="w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {vaccinations.map((v) => (
+                  <TableRow key={v.id}>
+                    <TableCell className="font-medium">
+                      {v.vaccine?.name ?? "—"}
+                    </TableCell>
+                    <TableCell>{v.dose_number ?? "—"}</TableCell>
+                    <TableCell className="text-xs">
+                      {new Date(v.applied_at).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {v.next_due_at ? (
+                        <span
+                          className={
+                            v.is_overdue ? "font-medium text-destructive" : ""
+                          }
+                        >
+                          {new Date(v.next_due_at).toLocaleDateString("pt-BR")}
+                          {v.is_overdue ? " (atrasada)" : ""}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs">{v.batch ?? "—"}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setEditing(v)}
+                      >
+                        <span className="sr-only">Editar</span>
+                        <IconActivity className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhuma vacina registrada para este paciente.
+          </div>
+        )}
+      </CardContent>
+      <VaccineRecordDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        fixedPatientId={patientId}
+      />
+      <VaccineRecordDialog
+        open={Boolean(editing)}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        vaccination={editing}
+        fixedPatientId={patientId}
+      />
     </Card>
   );
 }
@@ -286,6 +404,8 @@ export default function PatientDetails() {
           collapsed={patientInfoCollapsed}
           onToggle={() => setPatientInfoCollapsed(!patientInfoCollapsed)}
         />
+
+        <VaccinationsCard patientId={id} />
 
         {/* Current Treatments */}
         <Card>

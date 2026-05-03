@@ -12,6 +12,7 @@ const clinicScopedTopLevelPaths = new Set([
   "templates",
   "measures",
   "treatments",
+  "vaccines",
 ]);
 
 const nonClinicPrefixes = new Set(["sign-in", "sign-up", "clinic"]);

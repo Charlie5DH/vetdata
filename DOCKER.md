@@ -74,24 +74,21 @@ The `docker-compose.yml` sets:
 
 - `DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/vetdata`
 - `CORS_ORIGINS=http://localhost:5173`
-- `CLERK_SECRET_KEY=sk_test_replace_me`
-- `CLERK_JWKS_URL=https://example.com/.well-known/jwks.json`
-- `CLERK_API_URL=https://api.clerk.com/v1`
-- `CLERK_AUTHORIZED_PARTIES=http://localhost:5173`
+- `AUTH_JWT_SECRET=change_me_to_a_long_random_string`
+- `AUTH_JWT_ACCESS_TTL_MINUTES=15`
+- `AUTH_JWT_REFRESH_TTL_DAYS=30`
+- `GOOGLE_OAUTH_CLIENT_ID=` (optional)
 
-For a working authentication flow, replace the Clerk placeholders with your real instance values before starting the backend. The backend now protects every API route except `/api/v1/health` and the Clerk provisioning endpoints, so invalid placeholders will let the API boot but authenticated routes will fail as expected.
+The backend issues its own JWT tokens; `AUTH_JWT_SECRET` must be set before the backend can start. Every API route is protected except `/api/v1/health` and `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/google`.
 
 Recommended local setup:
 
 ```bash
 # Backend auth settings
-set CLERK_SECRET_KEY=sk_test_xxx
-set CLERK_JWKS_URL=https://your-clerk-domain/.well-known/jwks.json
-set CLERK_ISSUER=https://your-clerk-domain
-set CLERK_WEBHOOK_SECRET=whsec_xxx
-set CLERK_AUTHORIZED_PARTIES=http://localhost:5173
+set AUTH_JWT_SECRET=change_me_to_a_long_random_string
+set GOOGLE_OAUTH_CLIENT_ID=
 
-# Frontend auth settings
+# Frontend env
 cd frontend
 copy .env.example .env.local
 ```

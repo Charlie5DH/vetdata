@@ -1,5 +1,12 @@
+import { Link, useNavigate } from "react-router-dom";
+import {
+  BadgeCheckIcon,
+  ChevronsUpDownIcon,
+  LogOutIcon,
+  Settings2Icon,
+} from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useClerk, useUser } from "@clerk/clerk-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,31 +21,20 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  BadgeCheckIcon,
-  ChevronsUpDownIcon,
-  LogOutIcon,
-  Settings2Icon,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/components/auth/auth-provider";
 import { useCurrentUser } from "@/api/auth";
 import { useClinicPath } from "@/lib/clinic-routes";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { data: currentUser } = useCurrentUser();
   const { clinicPath } = useClinicPath();
 
-  const displayName =
-    currentUser?.display_name ??
-    user?.fullName ??
-    user?.firstName ??
-    "Equipe VetData";
-  const email =
-    currentUser?.email ?? user?.primaryEmailAddress?.emailAddress ?? "";
-  const avatarUrl = currentUser?.avatar_url ?? user?.imageUrl ?? "";
+  const displayName = currentUser?.display_name ?? "Equipe VetData";
+  const email = currentUser?.email ?? "";
+  const avatarUrl = currentUser?.avatar_url ?? "";
   const initials =
     displayName
       .split(" ")
@@ -46,6 +42,11 @@ export function NavUser() {
       .slice(0, 2)
       .map((segment) => segment[0]?.toUpperCase() ?? "")
       .join("") || "VD";
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/sign-in", { replace: true });
+  };
 
   return (
     <SidebarMenu>
@@ -102,11 +103,7 @@ export function NavUser() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                signOut({ redirectUrl: "/sign-in" });
-              }}
-            >
+            <DropdownMenuItem onClick={() => void handleSignOut()}>
               <LogOutIcon />
               Sair
             </DropdownMenuItem>

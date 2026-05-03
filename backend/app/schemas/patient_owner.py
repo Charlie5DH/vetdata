@@ -3,6 +3,8 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
 
+from app.schemas.vaccine import InitialVaccinationCreate
+
 # --- Owner Schemas ---
 
 
@@ -37,11 +39,12 @@ class PatientBase(BaseModel):
     weight_kg: Optional[float] = None
     notes: Optional[str] = None
     motive: Optional[str] = None
+    vaccine_notes: Optional[str] = None
     owner_id: UUID
 
 
 class PatientCreate(PatientBase):
-    pass
+    initial_vaccinations: Optional[List[InitialVaccinationCreate]] = None
 
 
 class PatientUpdate(PatientBase):

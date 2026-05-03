@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import AsyncSessionLocal, get_db
-from app.core.security import get_current_user, verify_clerk_token
+from app.core.security import get_current_user, verify_access_token
 from app.models import User
 from app.schemas import (
     ChatConversationCreate,
@@ -26,12 +26,14 @@ from app.services.chat_service import (
     list_conversations,
     stream_chat_response,
 )
-from app.services.user_service import sync_user_from_clerk
+from app.services.user_service import get_user_by_id
 
 
 router = APIRouter(prefix="/chat")
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+_INVALID_TOKEN_REASON = "Token inválido"
 
 
 async def authenticate_websocket_user(websocket: WebSocket, db: AsyncSession) -> User:
@@ -45,14 +47,28 @@ async def authenticate_websocket_user(websocket: WebSocket, db: AsyncSession) ->
         await websocket.close(code=4401, reason="Token ausente")
         raise WebSocketDisconnect(code=4401)
 
-    payload = await verify_clerk_token(token)
-
-    clerk_user_id = payload.get("sub")
-    if not clerk_user_id:
-        await websocket.close(code=4401, reason="Token inválido")
+    try:
+        payload = verify_access_token(token)
+    except HTTPException:
+        await websocket.close(code=4401, reason=_INVALID_TOKEN_REASON)
         raise WebSocketDisconnect(code=4401)
 
-    user = await sync_user_from_clerk(db, clerk_user_id)
+    raw_user_id = payload.get("sub")
+    if not raw_user_id:
+        await websocket.close(code=4401, reason=_INVALID_TOKEN_REASON)
+        raise WebSocketDisconnect(code=4401)
+
+    try:
+        user_id = UUID(raw_user_id)
+    except ValueError:
+        await websocket.close(code=4401, reason=_INVALID_TOKEN_REASON)
+        raise WebSocketDisconnect(code=4401)
+
+    user = await get_user_by_id(db, user_id)
+    if user is None:
+        await websocket.close(code=4401, reason="Usuário não encontrado")
+        raise WebSocketDisconnect(code=4401)
+
     if not cast(bool, cast(Any, user).is_active) or cast(Any, user).primary_clinic_id is None:
         await websocket.close(code=4403, reason="Usuário sem acesso à clínica")
         raise WebSocketDisconnect(code=4403)

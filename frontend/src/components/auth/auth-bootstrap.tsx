@@ -1,14 +1,12 @@
 import type { ReactNode } from "react";
-import { useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth, useClerk } from "@clerk/clerk-react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AlertCircleIcon, LoaderCircleIcon } from "lucide-react";
 
+import { useAuth } from "@/components/auth/auth-provider";
 import { useCurrentUser } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { setApiAccessTokenProvider } from "@/lib/api";
 import {
   buildClinicPath,
   getCanonicalClinicPath,
@@ -46,29 +44,17 @@ function AuthStatusCard({
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
   const location = useLocation();
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { signOut } = useClerk();
+  const navigate = useNavigate();
+  const { status, signOut } = useAuth();
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) {
-      setApiAccessTokenProvider(null);
-      return;
-    }
+  const isAuthenticated = status === "authenticated";
+  const currentUserQuery = useCurrentUser(isAuthenticated);
 
-    setApiAccessTokenProvider(() => getToken());
-
-    return () => {
-      setApiAccessTokenProvider(null);
-    };
-  }, [getToken, isLoaded, isSignedIn]);
-
-  const currentUserQuery = useCurrentUser(isLoaded && isSignedIn);
-
-  if (!isLoaded) {
+  if (status === "loading") {
     return (
       <AuthStatusCard
-        title="Carregando acesso seguro"
-        description="Estamos preparando sua sessão e sincronizando o ambiente da clínica."
+        title="Carregando sua sessão"
+        description="Estamos preparando o ambiente da clínica."
       >
         <div className="flex items-center gap-3 text-muted-foreground">
           <LoaderCircleIcon className="size-5 animate-spin text-primary" />
@@ -78,7 +64,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
     );
   }
 
-  if (!isSignedIn) {
+  if (!isAuthenticated) {
     return (
       <Navigate
         replace
@@ -93,11 +79,11 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
     return (
       <AuthStatusCard
         title="Sincronizando seu perfil"
-        description="Criando ou atualizando seu acesso interno antes de liberar os dados clínicos."
+        description="Carregando os dados da sua clínica antes de liberar o painel."
       >
         <div className="flex items-center gap-3 text-muted-foreground">
           <LoaderCircleIcon className="size-5 animate-spin text-primary" />
-          Conectando Clerk e VetData...
+          Carregando perfil...
         </div>
       </AuthStatusCard>
     );
@@ -107,14 +93,14 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
     return (
       <AuthStatusCard
         title="Não foi possível concluir a autenticação"
-        description="Sua sessão Clerk foi aberta, mas o perfil interno não pôde ser sincronizado."
+        description="Sua sessão foi aberta, mas não conseguimos carregar o perfil interno."
       >
         <Alert variant="destructive">
           <AlertCircleIcon className="size-4" />
-          <AlertTitle>Sincronização falhou</AlertTitle>
+          <AlertTitle>Falha ao carregar perfil</AlertTitle>
           <AlertDescription>
-            Verifique a configuração do backend e da webhook do Clerk, então
-            tente novamente.
+            Verifique sua conexão e tente novamente. Se o problema continuar,
+            contate o responsável pela clínica.
           </AlertDescription>
         </Alert>
         <div className="mt-6 flex flex-wrap gap-3">
@@ -124,7 +110,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
           <Button
             variant="outline"
             onClick={() => {
-              void signOut({ redirectUrl: "/sign-in" });
+              void signOut().then(() => navigate("/sign-in", { replace: true }));
             }}
           >
             Encerrar sessão

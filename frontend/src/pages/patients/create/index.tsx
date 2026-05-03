@@ -19,6 +19,7 @@ import { useClinicPath } from "@/lib/clinic-routes";
 import { cn } from "@/lib/utils";
 import { SectionPatientInfo } from "./section-patient-info";
 import { SectionTreatment } from "./section-treatment";
+import { SectionVaccines } from "./section-vaccines";
 import { SectionSummary } from "./section-summary";
 import {
   SectionTutorChoice,
@@ -38,6 +39,7 @@ type WizardStepId =
   | "owner-new"
   | "patient"
   | "treatment"
+  | "vaccines"
   | "summary";
 
 function getFooterPrimaryLabel(step: WizardStepId) {
@@ -45,8 +47,9 @@ function getFooterPrimaryLabel(step: WizardStepId) {
     case "owner-existing":
     case "owner-new":
     case "patient":
-      return "Proximo";
     case "treatment":
+      return "Proximo";
+    case "vaccines":
       return "Revisar resumo";
     case "summary":
       return "Criar paciente";
@@ -80,6 +83,7 @@ export default function PatientCreate() {
       },
       { id: "patient", label: "Paciente" },
       { id: "treatment", label: "Tratamento" },
+      { id: "vaccines", label: "Vacinas" },
       { id: "summary", label: "Resumo" },
     ],
     [ownerMode],
@@ -114,6 +118,15 @@ export default function PatientCreate() {
         return;
       }
 
+      const cleanInitialVaccinations = (values.initial_vaccinations ?? [])
+        .filter((entry) => entry.vaccine_id)
+        .map((entry) => ({
+          vaccine_id: entry.vaccine_id,
+          applied_at: entry.applied_at
+            ? new Date(entry.applied_at).toISOString()
+            : new Date().toISOString(),
+        }));
+
       const newPatient = await createPatient.mutateAsync({
         name: values.name,
         species: values.species,
@@ -123,7 +136,11 @@ export default function PatientCreate() {
         weight_kg: values.weight_kg || 0,
         notes: values.notes || null,
         motive: values.motive || null,
+        vaccine_notes: values.vaccine_notes || null,
         owner_id: ownerId,
+        initial_vaccinations: cleanInitialVaccinations.length
+          ? cleanInitialVaccinations
+          : undefined,
       });
 
       if (values.template_id && values.template_id !== "none") {
@@ -210,6 +227,12 @@ export default function PatientCreate() {
 
     if (currentStep === "treatment") {
       await form.trigger(patientCreateStepFields.treatment);
+      goToStep("vaccines");
+      return;
+    }
+
+    if (currentStep === "vaccines") {
+      await form.trigger(patientCreateStepFields.vaccines);
       goToStep("summary");
     }
   };
@@ -242,6 +265,8 @@ export default function PatientCreate() {
         return <SectionPatientInfo form={form} step={stepValue} />;
       case "treatment":
         return <SectionTreatment form={form} step={stepValue} />;
+      case "vaccines":
+        return <SectionVaccines form={form} step={stepValue} />;
       case "summary":
         return <SectionSummary form={form} step={stepValue} />;
       default:

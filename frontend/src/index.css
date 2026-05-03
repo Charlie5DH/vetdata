@@ -278,6 +278,20 @@
   }
 }
 
+[data-theme="ember-paper"]
+  :is(
+    [data-slot="input"],
+    [data-slot="textarea"],
+    [data-slot="select-trigger"]
+  ) {
+  background-color: var(--card);
+}
+
+[data-theme="ember-paper"]
+  [data-slot="select-trigger"]:hover {
+  background-color: var(--card);
+}
+
 @layer components {
   @keyframes chat-thinking-bounce {
     0%,

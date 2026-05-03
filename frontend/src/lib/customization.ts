@@ -156,7 +156,7 @@ export const shadowDepthOptions = [
 
 export const defaultAppCustomization: AppCustomization = {
   theme: DEFAULT_APP_THEME,
-  fontFamily: "theme",
+  fontFamily: "manrope",
   fontSize: 15,
   fontWeight: 400,
   badgeFontSize: 12,

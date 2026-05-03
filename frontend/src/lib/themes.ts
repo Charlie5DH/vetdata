@@ -27,7 +27,7 @@ export type ThemeDefinition = {
 
 export const APP_THEME_STORAGE_KEY = "vetdata.theme";
 
-export const DEFAULT_APP_THEME: AppThemeId = "ember-paper";
+export const DEFAULT_APP_THEME: AppThemeId = "clean-slate";
 
 const sharedShadows = {
   "theme-shadow-2xs": "0 1px 2px 0 hsl(0 0% 0% / 0.04)",
@@ -78,9 +78,9 @@ export const appThemes: readonly ThemeDefinition[] = [
     {
       background: "oklch(0.9750 0.0090 78)",
       foreground: "oklch(0.2950 0.0220 55)",
-      card: "oklch(0.9880 0.0060 80)",
+      card: "oklch(1 0 0)",
       "card-foreground": "oklch(0.2200 0.0180 55)",
-      popover: "oklch(0.9930 0.0040 85)",
+      popover: "oklch(1 0 0)",
       "popover-foreground": "oklch(0.2400 0.0200 60)",
       primary: "oklch(0.5840 0.1180 35.6)",
       "primary-foreground": "oklch(0.9900 0.0030 80)",

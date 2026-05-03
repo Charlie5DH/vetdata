@@ -1,9 +1,14 @@
 node_modules
 dist
+build
 .git
+.gitignore
 .vscode
+.idea
 build-output.txt
 build_output.log
 eslint_output.log
 lint.txt
-.env.local
+.env
+.env.*
+!.env.example

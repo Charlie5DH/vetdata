@@ -16,6 +16,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Make sure init-db.sh is executable even if the build host (e.g. Windows)
+# didn't preserve the +x bit.
+RUN chmod +x /app/init-db.sh
+
 ENTRYPOINT ["sh", "/app/init-db.sh"]
 
 # Expose the application port

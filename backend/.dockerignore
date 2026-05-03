@@ -9,9 +9,14 @@ dist/
 build/
 
 # Virtual Environment
+.venv/
 venv/
 env/
 ENV/
+
+# VCS
+.git
+.gitignore
 
 # IDEs
 .vscode/

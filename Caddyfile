@@ -1,0 +1,51 @@
+# Caddyfile for vetdata.com.br
+# Caddy automatically obtains and renews Let's Encrypt certificates
+# for the hostnames declared below.
+#
+# Email used for ACME registration (cert recovery, expiry notices) is
+# read from the LETSENCRYPT_EMAIL environment variable supplied by
+# docker-compose.prod.yml.
+
+{
+	email {$LETSENCRYPT_EMAIL}
+}
+
+# Redirect www -> apex, then serve apex.
+www.vetdata.com.br {
+	redir https://vetdata.com.br{uri} permanent
+}
+
+vetdata.com.br {
+	encode zstd gzip
+
+	# FastAPI: REST under /api, OpenAPI UIs, and chat WebSocket.
+	# `handle` (not `handle_path`) keeps the original prefix so that
+	# the backend's /api/v1/... routes match unchanged.
+	@backend {
+		path /api/* /docs /docs/* /redoc /redoc/* /openapi.json
+	}
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	# Everything else is the React SPA served by the frontend nginx
+	# container. The container already does try_files ... /index.html
+	# so client-side routing works.
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	# Reasonable security headers. Tweak as needed.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Remove the default Caddy server header.
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

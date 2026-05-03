@@ -12,6 +12,9 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+# Vite + tsc are memory-hungry. On a 1GB droplet (with swap enabled),
+# 2GB old-space lets the build complete without OOM.
+ENV NODE_OPTIONS=--max-old-space-size=2048
 RUN npm run build
 
 FROM nginx:1.27-alpine

@@ -29,12 +29,12 @@ let gsiLoadPromise: Promise<void> | null = null;
 
 function loadGoogleScript(): Promise<void> {
   if (typeof document === "undefined") return Promise.resolve();
-  if (globalThis.google?.accounts?.id) return Promise.resolve();
+  if (window.google?.accounts?.id) return Promise.resolve();
   if (gsiLoadPromise !== null) return gsiLoadPromise;
 
-  gsiLoadPromise = new Promise((resolve, reject) => {
+  const promise = new Promise<void>((resolve, reject) => {
     const handleLoad = () => {
-      if (globalThis.google?.accounts?.id) {
+      if (window.google?.accounts?.id) {
         resolve();
       } else {
         reject(new Error("O script do Google carregou sem expor a API esperada."));
@@ -43,7 +43,7 @@ function loadGoogleScript(): Promise<void> {
 
     const existing = document.getElementById(GSI_SCRIPT_ID) as HTMLScriptElement | null;
     if (existing) {
-      if (globalThis.google?.accounts?.id) {
+      if (window.google?.accounts?.id) {
         resolve();
         return;
       }
@@ -63,12 +63,13 @@ function loadGoogleScript(): Promise<void> {
     script.onerror = () =>
       reject(new Error("Não foi possível carregar o script do Google."));
     document.head.appendChild(script);
-  }).catch((error) => {
+  }).catch<void>((error: unknown) => {
     gsiLoadPromise = null;
     throw error;
   });
 
-  return gsiLoadPromise;
+  gsiLoadPromise = promise;
+  return promise;
 }
 
 type GoogleButtonProps = {
@@ -97,8 +98,8 @@ export function GoogleButton({
 
     loadGoogleScript()
       .then(() => {
-        if (cancelled || !globalThis.google) return;
-        globalThis.google.accounts.id.initialize({
+        if (cancelled || !window.google) return;
+        window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (response) => {
             if (response.credential) {
@@ -131,7 +132,7 @@ export function GoogleButton({
         className="auth-btn-google"
         disabled={!ready || disabled}
         onClick={() => {
-          globalThis.google?.accounts.id.prompt();
+          window.google?.accounts.id.prompt();
         }}
       >
         <GoogleIcon />

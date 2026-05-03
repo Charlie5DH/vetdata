@@ -1,9 +1,16 @@
 """add_chat_tables
 
 Revision ID: f2d9e4a1b6c7
-Revises: e4b7c1a9d2f0
+Revises: c3d4e5f6a7b8
 Create Date: 2026-03-23 12:00:00.000000
 
+NOTE: down_revision was originally e4b7c1a9d2f0, but the tables created
+here have foreign keys into `clinics` and `users`, which live on a
+parallel branch (1f4d2d9b8c31 → ... → c3d4e5f6a7b8). Alembic could
+choose to walk down this branch before the clinics/users branch and the
+migration would fail with UndefinedTableError. Re-parenting onto
+c3d4e5f6a7b8 forces a linear order that always has clinics+users in
+place before chat tables are created.
 """
 from typing import Sequence, Union
 
@@ -13,7 +20,7 @@ from sqlalchemy.dialects import postgresql
 
 
 revision: str = 'f2d9e4a1b6c7'
-down_revision: Union[str, Sequence[str], None] = 'e4b7c1a9d2f0'
+down_revision: Union[str, Sequence[str], None] = 'c3d4e5f6a7b8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

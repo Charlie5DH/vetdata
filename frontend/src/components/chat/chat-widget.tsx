@@ -1,17 +1,6 @@
 import { useEffect, useMemo, useRef, useState, startTransition } from "react";
 import type { FormEvent } from "react";
-import {
-  ArrowLeftIcon,
-  BotIcon,
-  CheckIcon,
-  LoaderCircleIcon,
-  MessageCircleMoreIcon,
-  PlusIcon,
-  SendHorizontalIcon,
-  SparklesIcon,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -34,17 +23,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { AssistantPet } from "@/components/brand/assistant-pet";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+  AlertIcon,
+  ArrowLIcon,
+  CalendarIcon,
+  CheckIcon,
+  EditIcon,
+  OkIcon,
+  OwnerIcon,
+  PawIcon,
+  SendIcon,
+  SparkleIcon,
+  TrashIcon,
+  XIcon,
+} from "@/components/icons/vetdata-icons";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useChatWebSocket } from "@/hooks/use-chat-websocket";
 import type {
@@ -102,6 +98,110 @@ function ThinkingDots() {
         <span key={dotId} className="chat-thinking-dot" />
       ))}
     </div>
+  );
+}
+
+const SUGGESTIONS = [
+  { prompt: "Mostre os pacientes ativos", category: "Pacientes", Icon: PawIcon },
+  {
+    prompt: "Resumo das sessões de hoje",
+    category: "Agenda",
+    Icon: CalendarIcon,
+  },
+  { prompt: "Alertas críticos?", category: "Alertas", Icon: AlertIcon },
+  {
+    prompt: "Mostre os tutores cadastrados",
+    category: "Tutores",
+    Icon: OwnerIcon,
+  },
+] as const;
+
+// Local id for an optimistic user message. Called from event handlers only.
+const localMessageId = () => `local-${Date.now()}`;
+
+const iconButtonClass =
+  "grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-stone-600 transition-colors duration-150 outline-none hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-forest-900/12 disabled:pointer-events-none disabled:opacity-50";
+
+function AiAvatar() {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-lemon-300"
+    >
+      <SparkleIcon size={15} />
+    </span>
+  );
+}
+
+function StepLine({ step }: { step: ToolActivity }) {
+  return (
+    <div className="inline-flex items-center gap-2 text-[12.5px] leading-5 text-muted-foreground">
+      {step.status === "done" ? (
+        <OkIcon size={14} className="text-success" />
+      ) : (
+        <Loader2Icon className="size-3.5 animate-spin" />
+      )}
+      {step.label}
+    </div>
+  );
+}
+
+const composerFormClass =
+  "flex flex-col gap-1.5 rounded-[20px] border border-input bg-card px-2.5 pt-2.5 pb-2 transition-[border-color,box-shadow] duration-150 focus-within:border-forest-600 focus-within:ring-[3px] focus-within:ring-forest-900/10";
+
+/** Composer fields; render inside a <form className={composerFormClass}>. */
+function ComposerFields({
+  value,
+  onChange,
+  canSend,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  canSend: boolean;
+  placeholder: string;
+}) {
+  return (
+    <>
+      <textarea
+        value={value}
+        rows={2}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            if (canSend) {
+              event.currentTarget.form?.requestSubmit();
+            }
+          }
+        }}
+        placeholder={placeholder}
+        aria-label="Mensagem para o assistente"
+        className="field-sizing-content max-h-48 min-h-12 w-full resize-none border-0 bg-transparent px-1.5 py-1 text-[15px] leading-normal text-foreground placeholder:text-stone-500 focus:outline-none"
+      />
+      <div className="flex items-center gap-0.5">
+        <span className="mr-2 ml-auto text-[11.5px] text-stone-500 max-sm:hidden">
+          ↵ enviar · ⇧↵ nova linha
+        </span>
+        <button
+          type="submit"
+          disabled={!canSend}
+          className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground transition-colors duration-150 outline-none hover:bg-forest-800 focus-visible:ring-[3px] focus-visible:ring-forest-900/12 disabled:pointer-events-none disabled:bg-cream-300 disabled:text-stone-400 max-sm:ml-auto"
+        >
+          <SendIcon size={16} strokeWidth={2.25} />
+          <span className="sr-only">Enviar</span>
+        </button>
+      </div>
+    </>
+  );
+}
+
+function Disclaimer() {
+  return (
+    <p className="mt-2 text-center text-[11.5px] text-stone-500">
+      O Assistente VetData pode cometer erros. Confira as doses antes de
+      administrar.
+    </p>
   );
 }
 
@@ -410,7 +510,7 @@ export function ChatWidget() {
       setActiveConversationId(conversation.id);
       setView("chat");
       setPendingUserMessages([
-        { id: `local-${Date.now()}`, content: initialPrompt },
+        { id: localMessageId(), content: initialPrompt },
       ]);
       setStreamingAssistant(null);
       setToolActivity([]);
@@ -477,126 +577,92 @@ export function ChatWidget() {
     }
   };
 
+  const canSend = Boolean(draft.trim()) && connectionState === "open";
+
   return (
     <>
-      <Button
+      <button
         type="button"
-        size="icon-lg"
-        className="fixed right-5 bottom-5 z-50 rounded-full border border-primary/20 bg-[radial-gradient(circle_at_top,color-mix(in_oklch,var(--chart-1)_55%,white),color-mix(in_oklch,var(--primary)_86%,black))] text-primary-foreground shadow-[0_22px_50px_-22px_color-mix(in_oklch,var(--primary)_55%,black)] transition-transform hover:scale-[1.03]"
+        className="fixed right-5 bottom-5 z-50 grid size-14 cursor-pointer place-items-center rounded-full bg-primary text-lemon-300 shadow-md transition-[background-color,transform] duration-150 ease-out outline-none hover:bg-forest-800 focus-visible:ring-[3px] focus-visible:ring-forest-900/20 active:scale-[0.97]"
         onClick={() => setOpen(true)}
       >
-        <MessageCircleMoreIcon className="size-5" />
+        <SparkleIcon size={22} />
         <span className="sr-only">Abrir assistente VetData</span>
-      </Button>
+      </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           showCloseButton={false}
-          className="h-[min(90vh,820px)] w-[96vw] md:w-[700px] lg:w-[900px] lg:min-w-[900px] max-w-none flex flex-col 
-          gap-0 overflow-hidden border border-border/70 p-0 
-          shadow-[0_30px_90px_-35px_color-mix(in_oklch,var(--primary)_28%,black)] 
-          bg-[linear-gradient(180deg,color-mix(in_oklch,var(--chart-1)_10%,white),color-mix(in_oklch,var(--background)_92%,var(--primary)_8%))]"
+          className="top-auto right-4 bottom-4 left-auto flex h-[min(85dvh,720px)] w-[calc(100vw-2rem)] max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-[18px] border border-border bg-background p-0 text-foreground shadow-lg sm:w-[420px] sm:max-w-none"
         >
+          <DialogTitle className="sr-only">Assistente VetData</DialogTitle>
           {view === "home" ? (
-            <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between px-5 py-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
-                    <BotIcon className="size-4" />
-                  </div>
-                  <span className="font-medium text-sm font-(--theme-font-sans)">
-                    Assistente VetData
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
+            <div className="flex h-full min-h-0 flex-col">
+              <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
+                <AiAvatar />
+                <span className="flex-1 text-[14.5px] font-semibold">
+                  Assistente VetData
+                </span>
+                <button
+                  type="button"
+                  className={iconButtonClass}
                   onClick={() => setOpen(false)}
                 >
                   <XIcon />
-                </Button>
+                  <span className="sr-only">Fechar assistente</span>
+                </button>
               </div>
 
-              <ScrollArea className="flex-1 px-4 py-8">
-                <div className="mx-auto flex w-full max-w-2xl flex-col items-center text-center">
-                  <div className="mb-4 flex size-16 items-center justify-center rounded-[1.25rem] bg-primary/10 text-primary shadow-sm">
-                    <SparklesIcon className="size-8" />
-                  </div>
-                  <h2 className="text-2xl font-medium font-(--theme-font-sans) sm:text-3xl">
-                    Olá, sou o Assistente VetData!
-                  </h2>
-                  <p className="mt-3 max-w-md text-muted-foreground text-sm sm:text-base">
-                    Sua IA para a clínica. Posso buscar pacientes, analisar
-                    sessões e preparar alterações.
-                  </p>
-
-                  <div className="mt-8 w-full">
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (draft.trim() && connectionState === "open") {
-                          handleStartNewFromHome(draft);
-                          setDraft("");
-                        }
-                      }}
-                      className="group flex w-full items-center gap-2 rounded-[1.5rem] border border-border/70 bg-background/80 px-4 py-2 shadow-sm transition-colors focus-within:border-primary/40 focus-within:bg-background"
-                    >
-                      <BotIcon className="size-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                      <input
-                        type="text"
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        placeholder="Faça uma pergunta ou comando..."
-                        className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground/70"
-                      />
-                      <Button
-                        type="submit"
-                        size="icon"
-                        disabled={!draft.trim() || connectionState !== "open"}
-                        className="size-9 shrink-0 rounded-full"
-                      >
-                        <SendHorizontalIcon className="size-4" />
-                      </Button>
-                    </form>
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="flex flex-col gap-5 px-[18px] py-5">
+                  <div className="flex flex-col items-center text-center">
+                    <AssistantPet background={false} className="w-28" />
+                    <h3 className="mt-2 text-[22px] font-semibold">
+                      Olá, sou o Assistente VetData!
+                    </h3>
+                    <p className="mt-1 max-w-[320px] text-sm text-muted-foreground">
+                      Sua IA para a clínica. Posso buscar pacientes, analisar
+                      sessões e preparar alterações.
+                    </p>
                   </div>
 
-                  <div className="mt-5 flex flex-wrap justify-center gap-2">
-                    {[
-                      "Mostre os pacientes ativos",
-                      "Resumo das sessões de hoje",
-                      "Alertas críticos?",
-                    ].map((prompt) => (
-                      <Button
+                  <div className="grid grid-cols-2 gap-2">
+                    {SUGGESTIONS.map(({ prompt, category, Icon }) => (
+                      <button
                         key={prompt}
                         type="button"
-                        variant="outline"
-                        className="rounded-full bg-white/50 px-4 text-xs font-normal text-muted-foreground hover:bg-white/80"
+                        className="grid cursor-pointer grid-cols-[16px_1fr] gap-2.5 rounded-lg border border-border bg-card p-3 text-left text-[13.5px] transition-colors duration-150 hover:bg-cream-200"
                         onClick={() => {
                           if (connectionState === "open") {
                             handleStartNewFromHome(prompt);
                           }
                         }}
                       >
-                        <SparklesIcon className="mr-2 size-3" />
-                        {prompt}
-                      </Button>
+                        <Icon size={16} className="mt-0.5 text-stone-600" />
+                        <span className="flex flex-col gap-0.5">
+                          <span className="leading-snug text-foreground">
+                            {prompt}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {category}
+                          </span>
+                        </span>
+                      </button>
                     ))}
                   </div>
 
-                  <div className="mt-14 w-full text-left">
-                    <div className="mb-4 flex items-center justify-between px-1">
-                      <h3 className="text-sm font-medium text-foreground">
-                        Conversas recentes
-                      </h3>
-                    </div>
+                  <section className="flex flex-col gap-2">
+                    <h4 className="px-1 text-[11px] font-semibold tracking-[0.08em] text-stone-500 uppercase">
+                      Conversas recentes
+                    </h4>
                     {conversationsQuery.data?.length ? (
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="flex flex-col gap-1.5">
                         {conversationsQuery.data
                           .slice(0, 6)
                           .map((conversation) => (
                             <div
                               key={conversation.id}
-                              className="relative rounded-[1.25rem] border border-border/50 bg-white/60 shadow-sm transition-colors hover:bg-primary/5"
+                              className="relative rounded-lg border border-border bg-card transition-colors duration-150 hover:bg-cream-200"
                             >
                               <button
                                 type="button"
@@ -604,78 +670,96 @@ export function ChatWidget() {
                                   setActiveConversationId(conversation.id);
                                   setView("chat");
                                 }}
-                                className="flex w-full flex-col items-start px-5 py-4 pr-14 text-left"
+                                className="flex w-full cursor-pointer flex-col items-start px-3.5 py-2.5 pr-12 text-left"
                               >
-                                <span className="w-full truncate text-sm font-medium text-foreground">
+                                <span className="w-full truncate text-[13.5px] font-semibold text-foreground">
                                   {formatConversationTitle(conversation)}
                                 </span>
-                                <span className="mt-1.5 w-full line-clamp-1 text-xs text-muted-foreground/80">
+                                <span className="mt-0.5 w-full truncate text-xs text-muted-foreground tabular-nums">
                                   Atualizada em{" "}
                                   {formatConversationMetaLabel(conversation)}
                                 </span>
                               </button>
-                              <Button
+                              <button
                                 type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                className="absolute top-3 right-3 text-muted-foreground hover:text-destructive"
+                                className={cn(
+                                  iconButtonClass,
+                                  "absolute top-1/2 right-2 -translate-y-1/2 hover:text-destructive",
+                                )}
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   setConversationPendingDeletion(conversation);
                                 }}
                               >
-                                <Trash2Icon className="size-4" />
+                                <TrashIcon />
                                 <span className="sr-only">
                                   Excluir conversa
                                 </span>
-                              </Button>
+                              </button>
                             </div>
                           ))}
                       </div>
                     ) : (
-                      <p className="mt-8 px-1 text-center text-sm text-muted-foreground">
-                        Nenhuma conversa ainda. Faça uma pergunta acima para
+                      <p className="px-1 text-[13px] text-muted-foreground">
+                        Nenhuma conversa ainda. Faça uma pergunta abaixo para
                         começar.
                       </p>
                     )}
-                  </div>
+                  </section>
                 </div>
               </ScrollArea>
+
+              <div className="px-3.5 pt-1 pb-3">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (draft.trim() && connectionState === "open") {
+                      handleStartNewFromHome(draft);
+                      setDraft("");
+                    }
+                  }}
+                  className={composerFormClass}
+                >
+                  <ComposerFields
+                    value={draft}
+                    onChange={setDraft}
+                    canSend={canSend}
+                    placeholder="Faça uma pergunta ou comando..."
+                  />
+                </form>
+                <Disclaimer />
+              </div>
             </div>
           ) : (
-            <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between border-b border-border/70 bg-background/80 px-4 py-3 backdrop-blur sm:px-6">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-ml-2 shrink-0 text-muted-foreground hover:text-foreground"
-                    onClick={() => setView("home")}
-                  >
-                    <ArrowLeftIcon data-icon="inline-start" />
-                    Voltar
-                  </Button>
-                  <div className="hidden h-4 w-px bg-border/80 sm:block"></div>
-                  <div className="flex min-w-0 items-center gap-2">
-                    <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                      <BotIcon className="size-3.5" />
-                    </div>
-                    <span className="truncate text-sm font-medium">
-                      {conversationQuery.data?.conversation
-                        ? formatConversationTitle(
-                            conversationQuery.data.conversation,
-                          )
-                        : "Nova conversa"}
-                    </span>
-                  </div>
+            <div className="flex h-full min-h-0 flex-col">
+              <div className="flex items-center gap-2.5 border-b border-border py-3 pr-4 pl-2.5">
+                <button
+                  type="button"
+                  className={iconButtonClass}
+                  onClick={() => setView("home")}
+                >
+                  <ArrowLIcon />
+                  <span className="sr-only">Voltar</span>
+                </button>
+                <AiAvatar />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-[14.5px] leading-tight font-semibold">
+                    Assistente VetData
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {conversationQuery.data?.conversation
+                      ? formatConversationTitle(
+                          conversationQuery.data.conversation,
+                        )
+                      : "Nova conversa"}
+                  </span>
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 items-center gap-0.5">
                   {conversationQuery.data?.conversation ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
+                    <button
+                      type="button"
                       title="Excluir conversa"
-                      className="text-muted-foreground hover:text-destructive"
+                      className={cn(iconButtonClass, "hover:text-destructive")}
                       onClick={() =>
                         setConversationPendingDeletion(
                           conversationQuery.data?.conversation ?? null,
@@ -683,198 +767,167 @@ export function ChatWidget() {
                       }
                       disabled={deleteConversation.isPending}
                     >
-                      <Trash2Icon className="size-4" />
+                      <TrashIcon />
                       <span className="sr-only">Excluir conversa</span>
-                    </Button>
+                    </button>
                   ) : null}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="md:-mr-1"
+                  <button
+                    type="button"
                     title="Nova conversa"
+                    className={iconButtonClass}
                     onClick={handleNewConversation}
                     disabled={createConversation.isPending}
                   >
                     {createConversation.isPending ? (
-                      <LoaderCircleIcon className="animate-spin" />
+                      <Loader2Icon className="size-4 animate-spin" />
                     ) : (
-                      <PlusIcon />
+                      <EditIcon />
                     )}
                     <span className="sr-only">Nova conversa</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
+                  </button>
+                  <button
+                    type="button"
+                    className={iconButtonClass}
                     onClick={() => setOpen(false)}
                   >
                     <XIcon />
                     <span className="sr-only">Fechar assistente</span>
-                  </Button>
+                  </button>
                 </div>
               </div>
 
-              <ScrollArea className="min-h-0 flex-1 px-4 py-4 sm:px-6 sm:py-5">
-                <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 pb-5">
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="flex flex-col gap-5 px-[18px] py-5">
                   {!combinedMessages.length && !conversationQuery.isLoading ? (
-                    <Card className="border-primary/15 bg-white/72 shadow-sm">
-                      <CardHeader>
-                        <div className="flex items-center gap-2 text-primary">
-                          <SparklesIcon className="size-4" />
-                          <CardTitle className="text-sm">
-                            Peça dados ou proponha uma alteração
-                          </CardTitle>
-                        </div>
-                        <CardDescription>
-                          Exemplo: "mostre os pacientes ativos" ou "prepare um
-                          novo tutor para Maria Souza".
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
+                    <div className="flex flex-col items-center py-4 text-center">
+                      <AssistantPet background={false} className="w-28" />
+                      <h3 className="mt-2 text-[22px] font-semibold">
+                        Peça dados ou proponha uma alteração
+                      </h3>
+                      <p className="mt-1 max-w-[320px] text-sm text-muted-foreground">
+                        Exemplo: "mostre os pacientes ativos" ou "prepare um
+                        novo tutor para Maria Souza".
+                      </p>
+                    </div>
                   ) : null}
 
-                  {combinedMessages.map((message) => (
-                    <div key={message.id} className="space-y-2">
-                      {message.role === "assistant"
-                        ? processHistory
+                  {combinedMessages.map((message) =>
+                    message.role === "user" ? (
+                      <div
+                        key={message.id}
+                        className="max-w-[82%] self-end rounded-2xl rounded-br-md bg-secondary px-3.5 py-2.5 text-[14.5px] break-words whitespace-pre-wrap text-foreground"
+                      >
+                        {message.content || "..."}
+                      </div>
+                    ) : (
+                      <div
+                        key={message.id}
+                        className="grid grid-cols-[28px_1fr] gap-3"
+                      >
+                        <AiAvatar />
+                        <div className="flex min-w-0 flex-col gap-2.5 text-[14.5px] leading-relaxed text-stone-700 [&_b]:text-foreground [&_strong]:text-foreground">
+                          {processHistory
                             .filter((entry) => entry.messageId === message.id)
                             .map((entry) => (
                               <div
                                 key={`${message.id}-process`}
-                                className="space-y-1 pl-2 text-xs text-muted-foreground"
+                                className="flex flex-col gap-1"
                               >
                                 {entry.steps.map((step) => (
-                                  <div
+                                  <StepLine
                                     key={`${entry.messageId}-${step.id}`}
-                                    className="leading-5"
-                                  >
-                                    {step.label}
-                                  </div>
+                                    step={step}
+                                  />
                                 ))}
                               </div>
-                            ))
-                        : null}
-
-                      <div
-                        className={cn(
-                          "flex",
-                          message.role === "user"
-                            ? "justify-end"
-                            : "justify-start",
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "max-w-[92%] rounded-[1.4rem] px-4 py-3 text-sm shadow-sm sm:max-w-[85%]",
-                            message.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "border border-border/70 bg-background/88 text-foreground",
-                          )}
-                        >
-                          <div className="whitespace-pre-wrap leading-6">
+                            ))}
+                          <div className="break-words whitespace-pre-wrap">
                             {message.content || "..."}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
 
-                  {toolActivity.length ? (
-                    <div className="space-y-1 pl-2 text-xs text-muted-foreground">
-                      {toolActivity.map((entry) => (
-                        <div key={entry.id} className="leading-5">
-                          {entry.label}
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {streamingAssistant ? (
-                    <div className="flex justify-start">
-                      <div className="max-w-[92%] rounded-[1.4rem] border border-border/70 bg-background/88 px-4 py-3 text-sm text-foreground shadow-sm sm:max-w-[85%]">
-                        <div className="whitespace-pre-wrap leading-6">
-                          {streamingAssistant.content ? (
-                            streamingAssistant.content
-                          ) : (
-                            <ThinkingDots />
-                          )}
-                        </div>
+                  {toolActivity.length || streamingAssistant ? (
+                    <div className="grid grid-cols-[28px_1fr] gap-3">
+                      <AiAvatar />
+                      <div className="flex min-w-0 flex-col gap-2.5 text-[14.5px] leading-relaxed text-stone-700">
+                        {toolActivity.length ? (
+                          <div className="flex flex-col gap-1">
+                            {toolActivity.map((entry) => (
+                              <StepLine key={entry.id} step={entry} />
+                            ))}
+                          </div>
+                        ) : null}
+                        {streamingAssistant ? (
+                          <div className="break-words whitespace-pre-wrap">
+                            {streamingAssistant.content ? (
+                              streamingAssistant.content
+                            ) : (
+                              <ThinkingDots />
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
 
                   {pendingActions.map((action) => (
-                    <Card
+                    <div
                       key={action.id}
-                      className="border-amber-200/70 bg-amber-50/85 shadow-sm"
+                      className="flex flex-col gap-3 rounded-xl border border-cta-border bg-lemon-100 p-4"
                     >
-                      <CardHeader>
-                        <CardTitle className="text-sm">
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-sm font-semibold text-foreground">
                           Confirmação necessária
-                        </CardTitle>
-                        <CardDescription>{action.summary}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <pre className="overflow-x-auto rounded-xl bg-white/70 p-3 text-xs text-muted-foreground">
-                          {JSON.stringify(action.arguments_json, null, 2)}
-                        </pre>
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => handleDecision(action, true)}
-                            disabled={decidePendingAction.isPending}
-                          >
-                            <CheckIcon data-icon="inline-start" />
-                            Aprovar
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDecision(action, false)}
-                            disabled={decidePendingAction.isPending}
-                          >
-                            <XIcon data-icon="inline-start" />
-                            Rejeitar
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </p>
+                        <p className="text-[13.5px] text-stone-700">
+                          {action.summary}
+                        </p>
+                      </div>
+                      <pre className="overflow-x-auto rounded-md bg-card p-3 font-mono text-xs text-stone-700">
+                        {JSON.stringify(action.arguments_json, null, 2)}
+                      </pre>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleDecision(action, true)}
+                          disabled={decidePendingAction.isPending}
+                        >
+                          <CheckIcon data-icon="inline-start" />
+                          Aprovar
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDecision(action, false)}
+                          disabled={decidePendingAction.isPending}
+                        >
+                          <XIcon data-icon="inline-start" />
+                          Rejeitar
+                        </Button>
+                      </div>
+                    </div>
                   ))}
 
                   <div ref={transcriptBottomRef} />
                 </div>
               </ScrollArea>
 
-              <form
-                onSubmit={handleSubmit}
-                className="border-t border-border/70 bg-background/88 px-4 py-4 backdrop-blur sm:px-6"
-              >
-                <div className="mx-auto flex w-full max-w-4xl items-end gap-3">
-                  <Textarea
+              <div className="px-3.5 pt-1 pb-3">
+                <form onSubmit={handleSubmit} className={composerFormClass}>
+                  <ComposerFields
                     value={draft}
-                    onChange={(event) => setDraft(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" && !event.shiftKey) {
-                        event.preventDefault();
-                        if (draft.trim() && connectionState === "open") {
-                          handleSubmit(event);
-                        }
-                      }
-                    }}
+                    onChange={setDraft}
+                    canSend={canSend}
                     placeholder="Pergunte sobre pacientes, sessões, alertas ou peça para preparar uma alteração..."
-                    className="min-h-[50px] resize-none bg-white/75 sm:min-h-[52px]"
                   />
-                  <Button
-                    type="submit"
-                    className="shrink-0"
-                    disabled={!draft.trim() || connectionState !== "open"}
-                  >
-                    <SendHorizontalIcon data-icon="inline-start" />
-                    Enviar
-                  </Button>
-                </div>
-              </form>
+                </form>
+                <Disclaimer />
+              </div>
             </div>
           )}
         </DialogContent>

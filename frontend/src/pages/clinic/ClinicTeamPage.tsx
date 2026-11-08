@@ -9,17 +9,6 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import {
-  Ban,
-  Copy,
-  Loader2,
-  MailPlus,
-  MoreHorizontal,
-  Trash2,
-  ShieldCheck,
-  UserRoundPlus,
-  Users,
-} from "lucide-react";
 import { toast } from "sonner";
 
 import { useCurrentUser } from "@/api/auth";
@@ -44,7 +33,16 @@ import {
 import { PageLayout } from "@/components/layout/page-layout";
 import { DataTableColumnHeader } from "@/components/table/column-header";
 import { DataTableToolbar } from "@/components/table/data-table-toolbar";
+import {
+  CopyIcon,
+  MailIcon,
+  MoreIcon,
+  PlusIcon,
+  TrashIcon,
+  XIcon,
+} from "@/components/icons/vetdata-icons";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -111,6 +109,32 @@ const EMPTY_INVITE: InviteFormState = {
   password: "",
 };
 
+function buildInitials(name: string) {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((segment) => segment[0]?.toUpperCase() ?? "")
+      .join("") || "—"
+  );
+}
+
+const INVITATION_STATUS: Record<
+  string,
+  {
+    label: string;
+    variant: "success" | "warning" | "destructive" | "secondary";
+  }
+> = {
+  pending: { label: "Pendente", variant: "warning" },
+  accepted: { label: "Aceito", variant: "success" },
+  expired: { label: "Expirado", variant: "destructive" },
+  cancelled: { label: "Cancelado", variant: "secondary" },
+  canceled: { label: "Cancelado", variant: "secondary" },
+  revoked: { label: "Cancelado", variant: "secondary" },
+};
+
 const clinicTeamColumns: ColumnDef<TeamRow>[] = [
   {
     id: "member",
@@ -119,11 +143,18 @@ const clinicTeamColumns: ColumnDef<TeamRow>[] = [
       <DataTableColumnHeader column={column} title="Membro" />
     ),
     cell: ({ row }) => (
-      <div className="flex min-w-52 flex-col">
-        <span className="font-medium text-foreground">{row.original.name}</span>
-        <span className="text-sm text-muted-foreground">
-          {row.original.email}
+      <div className="flex min-w-52 items-center gap-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-mint-300 text-xs font-semibold text-forest-900">
+          {buildInitials(row.original.name)}
         </span>
+        <div className="flex min-w-0 flex-col">
+          <span className="font-semibold text-foreground">
+            {row.original.name}
+          </span>
+          <span className="text-[12.5px] text-muted-foreground">
+            {row.original.email}
+          </span>
+        </div>
       </div>
     ),
   },
@@ -135,7 +166,7 @@ const clinicTeamColumns: ColumnDef<TeamRow>[] = [
     cell: ({ row }) => (
       <Badge
         variant={
-          row.original.roleValue === "clinic_owner" ? "secondary" : "outline"
+          row.original.roleValue === "clinic_owner" ? "default" : "secondary"
         }
       >
         {row.original.roleLabel}
@@ -148,7 +179,9 @@ const clinicTeamColumns: ColumnDef<TeamRow>[] = [
       <DataTableColumnHeader column={column} title="Entrou em" />
     ),
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.joinedAt}</span>
+      <span className="tabular-nums text-muted-foreground">
+        {row.original.joinedAt}
+      </span>
     ),
   },
 ];
@@ -263,47 +296,56 @@ export default function ClinicTeamPage() {
   let invitationsSection: React.ReactNode;
   if (invitationsQuery.isLoading) {
     invitationsSection = (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
+      <div className="flex items-center gap-2 px-5 py-6 text-sm text-muted-foreground">
+        <Spinner />
         Carregando convites...
       </div>
     );
   } else if (invitationsQuery.data?.length) {
     invitationsSection = (
-      <div className="overflow-hidden rounded-2xl border border-border/70">
+      <div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>E-mail</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Criado em</TableHead>
-              <TableHead className="w-12" />
+              <TableHead className="w-14" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {invitationRows.map((invitation) => (
               <TableRow key={invitation.id}>
-                <TableCell className="font-medium">
-                  {invitation.email}
+                <TableCell>
+                  <span className="inline-flex items-center gap-2 font-semibold text-foreground">
+                    <MailIcon size={14} className="text-muted-foreground" />
+                    {invitation.email}
+                  </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="gap-2">
-                    <ShieldCheck className="size-3.5" />
-                    {invitation.status}
+                  <Badge
+                    variant={
+                      INVITATION_STATUS[invitation.status]?.variant ??
+                      "secondary"
+                    }
+                  >
+                    <span className="size-1.5 rounded-full bg-current" />
+                    {INVITATION_STATUS[invitation.status]?.label ??
+                      invitation.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="tabular-nums text-muted-foreground">
                   {invitation.createdAt}
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-14 pl-0 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground"
+                        size="icon-sm"
+                        className="text-muted-foreground"
                       >
-                        <MoreHorizontal className="size-4" />
+                        <MoreIcon />
                         <span className="sr-only">Ações do convite</span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -311,7 +353,7 @@ export default function ClinicTeamPage() {
                       <DropdownMenuItem
                         onClick={() => void handleCopyEmail(invitation.email)}
                       >
-                        <Copy className="mr-2 size-4" />
+                        <CopyIcon />
                         Copiar e-mail
                       </DropdownMenuItem>
                       {canInvite ? (
@@ -322,9 +364,9 @@ export default function ClinicTeamPage() {
                               setInvitationPendingCancellation(invitation)
                             }
                             disabled={cancelInvitation.isPending}
-                            className="text-destructive focus:text-destructive"
+                            variant="destructive"
                           >
-                            <Ban className="mr-2 size-4" />
+                            <XIcon />
                             Cancelar convite
                           </DropdownMenuItem>
                         </>
@@ -340,7 +382,7 @@ export default function ClinicTeamPage() {
     );
   } else {
     invitationsSection = (
-      <p className="text-sm text-muted-foreground">
+      <p className="px-5 py-6 text-sm text-muted-foreground">
         Nenhum convite registrado ainda.
       </p>
     );
@@ -400,8 +442,8 @@ export default function ClinicTeamPage() {
               }}
             >
               <DialogTrigger asChild>
-                <Button>
-                  <UserRoundPlus className="mr-2 size-4" />
+                <Button variant="cta">
+                  <PlusIcon />
                   Convidar membro
                 </Button>
               </DialogTrigger>
@@ -416,14 +458,14 @@ export default function ClinicTeamPage() {
                 </DialogHeader>
 
                 <form className="space-y-4" onSubmit={handleInvite}>
-                  <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
+                  <div className="rounded-lg border border-border bg-muted px-4 py-3 text-[13.5px] text-muted-foreground">
                     {clinicQuery.data
                       ? `O acesso será vinculado à clínica ${clinicQuery.data.name}.`
                       : "O acesso será vinculado à clínica atual."}
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
+                    <div className="grid gap-1.5">
                       <Label htmlFor="invite-first-name">Nome</Label>
                       <Input
                         id="invite-first-name"
@@ -436,7 +478,7 @@ export default function ClinicTeamPage() {
                         }
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid gap-1.5">
                       <Label htmlFor="invite-last-name">Sobrenome</Label>
                       <Input
                         id="invite-last-name"
@@ -451,7 +493,7 @@ export default function ClinicTeamPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="invite-email">E-mail</Label>
                     <Input
                       id="invite-email"
@@ -468,7 +510,7 @@ export default function ClinicTeamPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="grid gap-1.5">
                     <Label htmlFor="invite-password">Senha inicial</Label>
                     <Input
                       id="invite-password"
@@ -495,12 +537,12 @@ export default function ClinicTeamPage() {
                     >
                       {inviteMember.isPending ? (
                         <>
-                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          <Spinner />
                           Adicionando...
                         </>
                       ) : (
                         <>
-                          <MailPlus className="mr-2 size-4" />
+                          <MailIcon />
                           Adicionar membro
                         </>
                       )}
@@ -514,42 +556,30 @@ export default function ClinicTeamPage() {
       }
     >
       <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-start gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Users className="size-5" />
-              </div>
-              <div>
-                <CardTitle>Membros da equipe</CardTitle>
-                <CardDescription>
-                  Visualize todos os profissionais vinculados à clínica e
-                  acompanhe os acessos ativos.
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
+        <Card className="gap-0 py-0">
+          <CardHeader className="border-b px-5 pt-5">
+            <CardTitle className="text-base">Membros da equipe</CardTitle>
+            <CardDescription>
               {clinicQuery.data
-                ? `Equipe vinculada à clínica ${clinicQuery.data.name}.`
-                : "Equipe vinculada à clínica atual."}
-            </div>
-
+                ? `Profissionais vinculados à clínica ${clinicQuery.data.name}.`
+                : "Profissionais vinculados à clínica atual."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
             {membersQuery.isLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
+              <div className="flex items-center gap-2 px-5 py-6 text-sm text-muted-foreground">
+                <Spinner />
                 Carregando equipe...
               </div>
             ) : (
-              <div className="space-y-4">
+              <div>
                 <DataTableToolbar
                   table={teamTable}
                   searchColumn="member"
                   searchPlaceholder="Buscar por nome ou e-mail..."
                 />
 
-                <div className="overflow-hidden rounded-2xl border border-border/70">
+                <div>
                   <Table>
                     <TableHeader>
                       {teamTable.getHeaderGroups().map((headerGroup) => (
@@ -564,7 +594,7 @@ export default function ClinicTeamPage() {
                                   )}
                             </TableHead>
                           ))}
-                          <TableHead className="w-12" />
+                          <TableHead className="w-14" />
                         </TableRow>
                       ))}
                     </TableHeader>
@@ -580,15 +610,15 @@ export default function ClinicTeamPage() {
                                 )}
                               </TableCell>
                             ))}
-                            <TableCell>
+                            <TableCell className="w-14 pl-0 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
-                                    size="icon"
-                                    className="size-8 text-muted-foreground"
+                                    size="icon-sm"
+                                    className="text-muted-foreground"
                                   >
-                                    <MoreHorizontal className="size-4" />
+                                    <MoreIcon />
                                     <span className="sr-only">
                                       Ações do membro
                                     </span>
@@ -603,7 +633,7 @@ export default function ClinicTeamPage() {
                                       void handleCopyEmail(row.original.email)
                                     }
                                   >
-                                    <Copy className="mr-2 size-4" />
+                                    <CopyIcon />
                                     Copiar e-mail
                                   </DropdownMenuItem>
                                   {canInvite &&
@@ -614,9 +644,9 @@ export default function ClinicTeamPage() {
                                         onClick={() =>
                                           setMemberPendingRemoval(row.original)
                                         }
-                                        className="text-destructive focus:text-destructive"
+                                        variant="destructive"
                                       >
-                                        <Trash2 className="mr-2 size-4" />
+                                        <TrashIcon />
                                         Remover membro
                                       </DropdownMenuItem>
                                     </>
@@ -644,14 +674,14 @@ export default function ClinicTeamPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Histórico de convites</CardTitle>
+        <Card className="gap-0 py-0">
+          <CardHeader className="border-b px-5 pt-5">
+            <CardTitle className="text-base">Histórico de convites</CardTitle>
             <CardDescription>
               Lista dos convites criados para esta clínica.
             </CardDescription>
           </CardHeader>
-          <CardContent>{invitationsSection}</CardContent>
+          <CardContent className="p-0">{invitationsSection}</CardContent>
         </Card>
       </div>
 

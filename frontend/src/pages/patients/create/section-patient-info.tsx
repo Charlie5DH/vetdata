@@ -1,6 +1,11 @@
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { Bird, Cat, Dog, PawPrint } from "lucide-react";
+import {
+  BirdIcon,
+  CatIcon,
+  DogIcon,
+  PawIcon,
+} from "@/components/icons/vetdata-icons";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,14 +23,15 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { FieldError } from "./field-error";
 import type { PatientCreateFormValues } from "./schema";
 
 const speciesOptions = [
-  { label: "Cachorro", value: "Cachorro", icon: Dog },
-  { label: "Gato", value: "Gato", icon: Cat },
-  { label: "Cavalo", value: "Cavalo", icon: PawPrint },
-  { label: "Pássaro", value: "Pássaro", icon: Bird },
-  { label: "Outro", value: "Outro", icon: PawPrint },
+  { label: "Cachorro", value: "Cachorro", icon: DogIcon },
+  { label: "Gato", value: "Gato", icon: CatIcon },
+  { label: "Cavalo", value: "Cavalo", icon: PawIcon },
+  { label: "Pássaro", value: "Pássaro", icon: BirdIcon },
+  { label: "Outro", value: "Outro", icon: PawIcon },
 ] as const;
 
 interface SectionPatientInfoProps {
@@ -48,22 +54,24 @@ export function SectionPatientInfo({ form, step }: SectionPatientInfoProps) {
     <Card id="paciente">
       <CardHeader>
         <CardTitle>
-          {step && <span className="mr-2 text-muted-foreground">{step}.</span>}
-          Informações do Paciente
+          {step && (
+            <span className="mr-2 font-medium text-muted-foreground tabular-nums">
+              {step}.
+            </span>
+          )}
+          Informações do paciente
         </CardTitle>
         <CardDescription>Dados básicos do animal.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Nome *</Label>
             <Input id="name" {...register("name")} placeholder="Nome do pet" />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
+            <FieldError message={errors.name?.message} />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="species">Espécie *</Label>
             <Controller
               name="species"
@@ -73,7 +81,7 @@ export function SectionPatientInfo({ form, step }: SectionPatientInfoProps) {
                   <SelectTrigger id="species">
                     {selectedSpecies ? (
                       <span className="flex items-center gap-2">
-                        <selectedSpecies.icon className="size-4 text-muted-foreground" />
+                        <selectedSpecies.icon size={16} className="text-muted-foreground" />
                         <span>{selectedSpecies.label}</span>
                       </span>
                     ) : (
@@ -83,7 +91,7 @@ export function SectionPatientInfo({ form, step }: SectionPatientInfoProps) {
                   <SelectContent>
                     {speciesOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        <option.icon className="size-4 text-muted-foreground" />
+                        <option.icon size={16} className="text-muted-foreground" />
                         <span>{option.label}</span>
                       </SelectItem>
                     ))}
@@ -91,14 +99,10 @@ export function SectionPatientInfo({ form, step }: SectionPatientInfoProps) {
                 </Select>
               )}
             />
-            {errors.species && (
-              <p className="text-sm text-destructive">
-                {errors.species.message}
-              </p>
-            )}
+            <FieldError message={errors.species?.message} />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="breed">Raça</Label>
             <Input
               id="breed"
@@ -107,18 +111,24 @@ export function SectionPatientInfo({ form, step }: SectionPatientInfoProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="weight_kg">Peso (kg)</Label>
-            <Input
-              id="weight_kg"
-              type="number"
-              step="0.1"
-              {...register("weight_kg", { valueAsNumber: true })}
-            />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="weight_kg">Peso</Label>
+            <div className="relative">
+              <Input
+                id="weight_kg"
+                type="number"
+                step="0.1"
+                className="pr-12 tabular-nums"
+                {...register("weight_kg", { valueAsNumber: true })}
+              />
+              <span className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[13px] text-muted-foreground">
+                kg
+              </span>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="age_years">Idade (Anos)</Label>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="age_years">Idade (anos)</Label>
             <Input
               id="age_years"
               type="number"
@@ -126,8 +136,8 @@ export function SectionPatientInfo({ form, step }: SectionPatientInfoProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="age_months">Idade (Meses)</Label>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="age_months">Idade (meses)</Label>
             <Input
               id="age_months"
               type="number"

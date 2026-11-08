@@ -1,8 +1,8 @@
 import * as React from "react";
-import { IconChevronDown, IconFilter, IconSearch } from "@tabler/icons-react";
 import type { Table } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { ChevDIcon, FilterIcon, SearchIcon } from "@/components/icons/vetdata-icons";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -37,31 +37,48 @@ export function DataTableToolbar<TData>({
   const searchValue =
     (table.getColumn(searchColumn)?.getFilterValue() as string) ?? "";
 
+  const filterValue = filterOptions
+    ? table.getColumn(filterOptions.columnId)?.getFilterValue()
+    : undefined;
+
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <div className="relative w-full sm:w-auto">
-          <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div
+      data-slot="data-table-toolbar"
+      className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3"
+    >
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+        <div className="relative w-full sm:w-[240px]">
+          <SearchIcon
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-500"
+          />
           <Input
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(event) =>
               table.getColumn(searchColumn)?.setFilterValue(event.target.value)
             }
-            className="w-full max-w-full pl-8 sm:w-[250px]"
+            className="h-[34px] w-full max-w-full pl-9 pr-3.5 text-[13.5px]"
           />
         </div>
         {leftExtra}
       </div>
-      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+      <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:justify-end">
         {filterOptions && filterOptions.options.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <IconFilter className="mr-2 h-4 w-4" />
+              <button
+                type="button"
+                data-active={filterValue !== undefined}
+                className={cn(
+                  "inline-flex h-7 items-center gap-1.5 rounded-sm border border-input bg-card px-2.5 text-[12.5px] font-medium text-foreground outline-none transition-colors duration-150 ease-out hover:bg-muted focus-visible:border-forest-600 focus-visible:ring-[3px] focus-visible:ring-forest-900/10 data-[state=open]:bg-muted [&_svg]:size-[13px] [&_svg]:shrink-0 [&_svg]:text-stone-600",
+                  "data-[active=true]:border-primary data-[active=true]:bg-lemon-100 data-[active=true]:[&_svg]:text-foreground",
+                )}
+              >
+                <FilterIcon size={13} />
                 <span className="hidden lg:inline">{filterOptions.label}</span>
-                <IconChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+                <ChevDIcon size={13} />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuCheckboxItem

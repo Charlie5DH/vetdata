@@ -11,8 +11,7 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { motion, AnimatePresence } from "framer-motion";
-import { IconAlertTriangle, IconPlus } from "@tabler/icons-react";
+import { AlertIcon, PlusIcon } from "@/components/icons/vetdata-icons";
 
 import { useDeleteVaccination, useVaccinations } from "@/api/vaccines";
 import { PageLayout } from "@/components/layout/page-layout";
@@ -29,6 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -99,12 +99,8 @@ export default function Vaccines() {
   if (isLoading) {
     return (
       <PageLayout title="Vacinas">
-        <div className="flex items-center justify-center h-full">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-8 w-8 border-b-2 border-primary"
-          />
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <Spinner className="size-6" />
         </div>
       </PageLayout>
     );
@@ -113,114 +109,106 @@ export default function Vaccines() {
   if (error) {
     return (
       <PageLayout title="Vacinas">
-        <div className="text-destructive">Erro ao carregar vacinações</div>
+        <div className="rounded-lg border border-border bg-destructive-soft px-4 py-3 text-sm text-destructive">
+          Erro ao carregar vacinações.
+        </div>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Vacinas">
-      <div className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex flex-wrap items-center gap-3"
-        >
-          <DataTableToolbar
-            table={table}
-            searchColumn="patient"
-            searchPlaceholder="Buscar por paciente..."
-            rightExtra={
-              <Button onClick={() => setCreateOpen(true)}>
-                <IconPlus className="mr-2 h-4 w-4" />
-                Vacinação
-              </Button>
-            }
-          />
-        </motion.div>
-
-        <div className="flex flex-wrap items-center gap-4 rounded-md border bg-card px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="status-filter">Status:</Label>
+    <PageLayout
+      title="Vacinas"
+      actions={
+        <Button variant="cta" onClick={() => setCreateOpen(true)}>
+          <PlusIcon />
+          Registrar vacina
+        </Button>
+      }
+    >
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <DataTableToolbar
+          table={table}
+          searchColumn="patient"
+          searchPlaceholder="Buscar por paciente..."
+          leftExtra={
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger id="status-filter" className="w-40">
+              <SelectTrigger
+                size="sm"
+                id="status-filter"
+                aria-label="Status"
+                className="w-44"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="applied">Aplicadas</SelectItem>
                 <SelectItem value="scheduled">Agendadas</SelectItem>
                 <SelectItem value="skipped">Não aplicadas</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              id="overdue-toggle"
-              checked={overdueOnly}
-              onCheckedChange={setOverdueOnly}
-            />
-            <Label htmlFor="overdue-toggle">Apenas atrasadas</Label>
-          </div>
-        </div>
+          }
+          rightExtra={
+            <div className="flex items-center gap-2">
+              <Switch
+                id="overdue-toggle"
+                checked={overdueOnly}
+                onCheckedChange={setOverdueOnly}
+              />
+              <Label htmlFor="overdue-toggle" className="text-[13px]">
+                Apenas atrasadas
+              </Label>
+            </div>
+          }
+        />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-md border bg-card"
-        >
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence mode="wait">
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row, index) => (
-                    <motion.tr
-                      key={row.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                      className="group hover:bg-muted/50 data-[state=selected]:bg-muted"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </motion.tr>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      Nenhuma vacinação registrada.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-        </motion.div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Nenhuma vacinação registrada.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       <VaccineRecordDialog open={createOpen} onOpenChange={setCreateOpen} />
@@ -241,7 +229,7 @@ export default function Vaccines() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogMedia>
-              <IconAlertTriangle />
+              <AlertIcon />
             </AlertDialogMedia>
             <AlertDialogTitle>Excluir vacinação</AlertDialogTitle>
             <AlertDialogDescription>

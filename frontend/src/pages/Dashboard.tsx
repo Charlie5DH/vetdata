@@ -1,17 +1,19 @@
-import { motion } from "framer-motion";
+import type { ComponentType } from "react";
 import { Link } from "react-router-dom";
 import {
-  IconActivity,
-  IconArrowRight,
-  IconCalendarEvent,
-  IconFileText,
-  IconPaw,
-  IconPlus,
-  IconRulerMeasure,
-  IconStethoscope,
-  IconUsers,
-  IconVaccine,
-} from "@tabler/icons-react";
+  AlertIcon,
+  AppointmentIcon,
+  ChevRIcon,
+  HeartPulseIcon,
+  PawIcon,
+  PlusIcon,
+  RecordIcon,
+  StethoscopeIcon,
+  SyringeIcon,
+  UsersIcon,
+  CalendarIcon,
+  type IconProps,
+} from "@/components/icons/vetdata-icons";
 
 import { PageLayout } from "@/components/layout/page-layout";
 import { useRecentEvents } from "@/api/events";
@@ -19,9 +21,9 @@ import { usePatients } from "@/api/patients";
 import { useOwners } from "@/api/owners";
 import { useTreatmentSessions } from "@/api/treatments";
 import { ActiveMonitoringChart } from "@/components/dashboard/active-monitoring-chart";
-import { themeAccentClasses } from "@/lib/theme-styles";
+import { PetAvatar } from "@/components/patients/pet-avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useClinicPath } from "@/lib/clinic-routes";
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -34,14 +36,14 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   treatment_log_deleted: "Registro removido",
 };
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
+const EVENT_TYPE_ICONS: Record<string, ComponentType<IconProps>> = {
+  patient_created: PawIcon,
+  patient_updated: PawIcon,
+  treatment_session_created: StethoscopeIcon,
+  treatment_session_completed: StethoscopeIcon,
+  treatment_alert_triggered: AlertIcon,
+  treatment_log_added: RecordIcon,
+  treatment_log_deleted: RecordIcon,
 };
 
 function formatBrazilianDate(date: Date): string {
@@ -83,7 +85,7 @@ const stepItems = [
 export default function Dashboard() {
   const { clinicPath } = useClinicPath();
   const { data: patients, isLoading: isLoadingPatients } = usePatients();
-  const { data: owners } = useOwners();
+  const { data: owners, isLoading: isLoadingOwners } = useOwners();
   const { data: sessions, isLoading: isLoadingSessions } =
     useTreatmentSessions();
   const { data: events, isLoading: isLoadingEvents } = useRecentEvents();
@@ -113,229 +115,193 @@ export default function Dashboard() {
 
   const stats = [
     {
-      title: "Total de Pacientes",
+      title: "Total de pacientes",
       value: patients?.length || 0,
-      icon: IconPaw,
-      accent: themeAccentClasses.chart1.stat,
+      icon: PawIcon,
+      loading: isLoadingPatients,
     },
     {
-      title: "Total de Tutores",
+      title: "Total de tutores",
       value: owners?.length || 0,
-      icon: IconUsers,
-      accent: themeAccentClasses.primary.stat,
+      icon: UsersIcon,
+      loading: isLoadingOwners,
     },
     {
-      title: "Tratamentos Ativos",
+      title: "Tratamentos ativos",
       value: sessions?.filter((s) => s.status === "active").length || 0,
-      icon: IconStethoscope,
-      accent: themeAccentClasses.chart5.stat,
+      icon: StethoscopeIcon,
+      loading: isLoadingSessions,
     },
     {
-      title: "Total de Sessões",
+      title: "Total de sessões",
       value: sessions?.length || 0,
-      icon: IconCalendarEvent,
-      accent: themeAccentClasses.chart2.stat,
+      icon: CalendarIcon,
+      loading: isLoadingSessions,
     },
   ];
 
   return (
-    <PageLayout>
-      <div className="mx-auto w-full max-w-[1080px]">
-        {/* Editorial page head */}
-        <div className="mb-9 flex items-baseline justify-between gap-4">
-          <h1 className="font-[var(--theme-font-serif)] text-4xl md:text-[40px] leading-[1.1] tracking-tight font-normal text-card-foreground">
-            Painel
-          </h1>
-          <div className="hidden text-sm text-muted-foreground sm:block">
-            {today}
-          </div>
-        </div>
+    <PageLayout title="Painel" description={today}>
+      <div className="w-full">
 
         {hasNoPatients ? (
           <EmptyHero clinicPath={clinicPath} />
         ) : (
           <>
-            <motion.div
-              variants={container}
-              initial="hidden"
-              animate="show"
-              className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-            >
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {stats.map((stat) => (
-                <motion.div key={stat.title} variants={item}>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        {stat.title}
-                      </CardTitle>
-                      <div className={`rounded-md p-2 ${stat.accent}`}>
-                        <stat.icon className="h-4 w-4" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stat.value}</div>
-                      <p className="text-xs text-muted-foreground">
-                        +0% em relação ao mês anterior
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                <div
+                  key={stat.title}
+                  className="flex flex-col gap-1.5 rounded-xl border border-border bg-card p-5"
+                >
+                  <div className="flex items-center justify-between text-[13px] text-muted-foreground">
+                    {stat.title}
+                    <stat.icon size={14} className="text-stone-500" />
+                  </div>
+                  <div className="text-[28px] leading-tight font-semibold tracking-[-0.02em] tabular-nums">
+                    {stat.loading ? "—" : stat.value}
+                  </div>
+                </div>
               ))}
-            </motion.div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
-                className="col-span-4"
-              >
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>Atividade Recente</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {isLoadingEvents && (
-                        <div className="space-y-3">
-                          {Array.from({ length: 4 }).map((_, index) => (
-                            <div
-                              key={`event-skeleton-${index + 1}`}
-                              className="h-16 rounded-xl bg-muted/50 animate-pulse"
-                            />
-                          ))}
-                        </div>
-                      )}
-                      {!isLoadingEvents && events?.length
-                        ? events.map((event) => {
-                            const patientName =
-                              event.patient?.name ?? "Paciente";
-                            const eventLabel =
-                              EVENT_TYPE_LABELS[event.event_type] ?? event.title;
-
-                            return (
-                              <div
-                                key={event.id}
-                                className="relative flex items-start gap-4 rounded-xl border border-border/60 bg-muted/20 p-4 transition-colors hover:border-primary/40 hover:bg-muted/35"
-                              >
-                                <Link
-                                  to={`/patients/${event.patient_id}`}
-                                  aria-label={`Abrir paciente ${patientName}`}
-                                  className="absolute inset-0 z-10 rounded-xl"
-                                />
-                                <div className="relative z-20 rounded-lg bg-primary/10 p-2 text-primary pointer-events-none">
-                                  <IconActivity className="h-4 w-4" />
-                                </div>
-                                <div className="relative z-20 min-w-0 flex-1 space-y-1 pointer-events-none">
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                      <p className="text-sm font-medium leading-none">
-                                        {patientName}
-                                      </p>
-                                      <p className="mt-1 text-xs text-muted-foreground">
-                                        {eventLabel}
-                                      </p>
-                                      {event.patient?.owner?.id ? (
-                                        <Link
-                                          to={`/tutors/${event.patient.owner.id}`}
-                                          className="pointer-events-auto mt-1 inline-flex text-xs text-muted-foreground transition-colors hover:text-primary"
-                                        >
-                                          Tutor: {event.patient.owner.first_name}{" "}
-                                          {event.patient.owner.last_name}
-                                        </Link>
-                                      ) : null}
-                                    </div>
-                                    <span className="shrink-0 text-xs text-muted-foreground">
-                                      {new Date(
-                                        event.occurred_at,
-                                      ).toLocaleString()}
-                                    </span>
-                                  </div>
-                                  {event.description ? (
-                                    <p className="text-sm text-muted-foreground">
-                                      {event.description}
-                                    </p>
-                                  ) : null}
-                                </div>
-                              </div>
-                            );
-                          })
-                        : null}
-                      {!isLoadingEvents && !events?.length && (
-                        <div className="flex h-50 items-center justify-center text-sm text-muted-foreground">
-                          Nenhuma atividade recente encontrada.
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-                className="col-span-3"
-              >
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>Pacientes ativos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {activePatients.map((patient) => (
-                        <div
-                          key={patient.id}
-                          className="flex items-center gap-4"
-                        >
-                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
-                            <IconPaw className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <Link
-                              to={`/patients/${patient.id}`}
-                              className="text-sm font-medium leading-none transition-colors hover:text-primary"
-                            >
-                              {patient.name}
-                            </Link>
-                            <p className="text-xs text-muted-foreground">
-                              {patient.species} • {patient.breed}
-                            </p>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Em tratamento desde{" "}
-                            {new Date(patient.started_at).toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
-                      {!isLoadingSessions && activePatients.length === 0 && (
-                        <div className="text-center text-sm text-muted-foreground py-8">
-                          Nenhum paciente com tratamento ativo
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="mt-8"
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle>Métricas em Monitoramento</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ActiveMonitoringChart
-                    sessions={sessions}
-                    isLoading={isLoadingSessions}
-                  />
-                </CardContent>
-              </Card>
-            </motion.div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+              <section className="col-span-4 flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
+                <h2 className="text-base font-semibold">Atividade recente</h2>
+                <div className="-mx-2 flex flex-col gap-0.5">
+                  {isLoadingEvents && (
+                    <div className="flex flex-col gap-2 px-2">
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <Skeleton
+                          key={`event-skeleton-${index + 1}`}
+                          className="h-14 rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {!isLoadingEvents && events?.length
+                    ? events.map((event) => {
+                        const patientName = event.patient?.name ?? "Paciente";
+                        const eventLabel =
+                          EVENT_TYPE_LABELS[event.event_type] ?? event.title;
+                        const EventIcon =
+                          EVENT_TYPE_ICONS[event.event_type] ?? HeartPulseIcon;
+                        const isAlert =
+                          event.event_type === "treatment_alert_triggered";
+
+                        return (
+                          <div
+                            key={event.id}
+                            className="relative flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors duration-150 hover:bg-muted"
+                          >
+                            <Link
+                              to={`/patients/${event.patient_id}`}
+                              aria-label={`Abrir paciente ${patientName}`}
+                              className="absolute inset-0 z-10 rounded-lg"
+                            />
+                            <span
+                              className={
+                                isAlert
+                                  ? "pointer-events-none relative z-20 grid size-8 shrink-0 place-items-center rounded-full bg-destructive-soft text-destructive"
+                                  : "pointer-events-none relative z-20 grid size-8 shrink-0 place-items-center rounded-full bg-muted text-foreground"
+                              }
+                            >
+                              <EventIcon size={16} />
+                            </span>
+                            <div className="pointer-events-none relative z-20 min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="min-w-0">
+                                  <p className="text-[13.5px] font-semibold">
+                                    {patientName}
+                                    <span className="font-normal text-muted-foreground">
+                                      {" "}
+                                      · {eventLabel}
+                                    </span>
+                                  </p>
+                                  {event.patient?.owner?.id ? (
+                                    <Link
+                                      to={`/tutors/${event.patient.owner.id}`}
+                                      className="pointer-events-auto text-[12.5px] text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                                    >
+                                      Tutor: {event.patient.owner.first_name}{" "}
+                                      {event.patient.owner.last_name}
+                                    </Link>
+                                  ) : null}
+                                </div>
+                                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                                  {new Date(event.occurred_at).toLocaleString(
+                                    "pt-BR",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )}
+                                </span>
+                              </div>
+                              {event.description ? (
+                                <p className="mt-0.5 text-[13px] text-stone-700">
+                                  {event.description}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })
+                    : null}
+                  {!isLoadingEvents && !events?.length && (
+                    <div className="flex h-50 items-center justify-center text-sm text-muted-foreground">
+                      Nenhuma atividade recente encontrada.
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="col-span-3 flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
+                <h2 className="text-base font-semibold">Pacientes ativos</h2>
+                <div className="-mx-2 flex flex-col gap-0.5">
+                  {activePatients.map((patient) => (
+                    <Link
+                      key={patient.id}
+                      to={`/patients/${patient.id}`}
+                      className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-150 hover:bg-muted"
+                    >
+                      <PetAvatar species={patient.species} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13.5px] font-semibold">
+                          {patient.name}
+                        </p>
+                        <p className="truncate text-[12.5px] text-muted-foreground">
+                          {patient.species} · {patient.breed}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                        Em tratamento desde{" "}
+                        {new Date(patient.started_at).toLocaleDateString(
+                          "pt-BR",
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                  {!isLoadingSessions && activePatients.length === 0 && (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                      Nenhum paciente com tratamento ativo
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <section className="mt-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
+              <h2 className="text-base font-semibold">
+                Métricas em monitoramento
+              </h2>
+              <ActiveMonitoringChart
+                sessions={sessions}
+                isLoading={isLoadingSessions}
+              />
+            </section>
           </>
         )}
       </div>
@@ -346,101 +312,81 @@ export default function Dashboard() {
 function EmptyHero({ clinicPath }: { clinicPath: (path?: string) => string }) {
   return (
     <>
-      <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="relative overflow-hidden rounded-2xl border border-border bg-card px-6 py-9 sm:px-10 sm:py-10 md:px-11"
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_240px_at_8%_0%,color-mix(in_oklab,var(--primary)_22%,transparent),transparent_60%)]"
-        />
-        <div className="relative">
-          <div className="mb-3.5 inline-flex items-center gap-2 text-xs uppercase tracking-[0.04em] text-muted-foreground">
-            <span className="block h-px w-[18px] bg-primary" />
-            Comece por aqui
-          </div>
+      <section className="rounded-xl border border-border bg-card px-6 py-8 sm:px-8">
+        <p className="mb-2 text-[13px] font-semibold text-muted-foreground">
+          Comece por aqui
+        </p>
 
-          <h2 className="mb-3 max-w-[30ch] font-[var(--theme-font-serif)] text-[28px] sm:text-[32px] leading-[1.15] tracking-tight font-normal text-card-foreground">
-            Sua clínica em um lugar —{" "}
-            <em className="italic text-primary">comece cadastrando</em> os
-            primeiros pacientes.
-          </h2>
+        <h2 className="mb-2 max-w-[34ch] text-xl font-semibold text-foreground">
+          Sua clínica em um lugar — comece cadastrando os primeiros pacientes.
+        </h2>
 
-          <p className="mb-6 max-w-[56ch] text-[15px] leading-[1.6] text-foreground">
-            O painel ainda está em branco. Cadastre o primeiro paciente e seu
-            tutor, depois monte modelos com as medidas que você acompanha. Por
-            fim, abra um tratamento e registre os atendimentos ao longo da
-            sessão.
-          </p>
+        <p className="mb-5 max-w-[60ch] text-sm leading-[1.6] text-stone-700">
+          O painel ainda está em branco. Cadastre o primeiro paciente e seu
+          tutor, depois monte modelos com as medidas que você acompanha. Por
+          fim, abra um tratamento e registre os atendimentos ao longo da sessão.
+        </p>
 
-          <div className="mb-1 flex flex-wrap items-center gap-2.5">
-            <Button asChild className="h-10 px-4">
-              <Link to={clinicPath("/patients/new")}>
-                <IconPlus className="size-3.5" />
-                Criar primeiro paciente
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" className="h-10 px-4">
-              <Link to={clinicPath("/tutors/new")}>Cadastrar tutor</Link>
-            </Button>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="cta">
+            <Link to={clinicPath("/patients/new")}>
+              <PlusIcon />
+              Criar primeiro paciente
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to={clinicPath("/tutors/new")}>Cadastrar tutor</Link>
+          </Button>
+        </div>
 
-          <div className="mt-2 grid grid-cols-1 gap-y-5 border-t border-border pt-7 md:grid-cols-[1fr_24px_1fr_24px_1fr]">
-            {stepItems.map((step, index) => (
-              <div key={step.n} className="contents">
-                <div className="flex flex-col gap-2.5 px-1">
-                  <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
-                    <span className="grid size-[22px] place-items-center rounded-full bg-secondary font-[var(--theme-font-serif)] text-[13px] italic font-normal text-foreground">
-                      {step.n}
-                    </span>
-                    {step.eyebrow}
-                  </div>
-                  <h3 className="text-[15px] font-semibold tracking-tight text-card-foreground">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm leading-[1.55] text-muted-foreground">
-                    {step.description}
-                  </p>
+        <div className="mt-7 grid grid-cols-1 gap-y-5 border-t border-border pt-6 md:grid-cols-[1fr_24px_1fr_24px_1fr]">
+          {stepItems.map((step, index) => (
+            <div key={step.n} className="contents">
+              <div className="flex flex-col gap-1.5 px-1">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <span className="grid size-[22px] place-items-center rounded-full bg-muted text-xs font-semibold text-foreground tabular-nums">
+                    {step.n}
+                  </span>
+                  {step.eyebrow}
                 </div>
-                {index < stepItems.length - 1 ? (
-                  <div className="hidden place-items-center text-foreground/35 md:grid">
-                    <IconArrowRight className="size-4" />
-                  </div>
-                ) : null}
+                <h3 className="text-[15px] font-semibold text-foreground">
+                  {step.title}
+                </h3>
+                <p className="text-[13.5px] leading-[1.55] text-muted-foreground">
+                  {step.description}
+                </p>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-7 flex flex-wrap items-center gap-3 border-t border-border pt-5 text-sm text-muted-foreground">
-            <strong className="font-medium text-foreground">
-              Acesse diretamente:
-            </strong>
-            <div className="ml-auto flex flex-wrap gap-1">
-              <QuickLink to={clinicPath("/treatments")} icon={IconStethoscope}>
-                Tratamentos
-              </QuickLink>
-              <QuickLink to={clinicPath("/templates")} icon={IconFileText}>
-                Modelos
-              </QuickLink>
-              <QuickLink to={clinicPath("/measures")} icon={IconRulerMeasure}>
-                Medidas
-              </QuickLink>
+              {index < stepItems.length - 1 ? (
+                <div className="hidden place-items-center text-stone-400 md:grid">
+                  <ChevRIcon size={16} />
+                </div>
+              ) : null}
             </div>
+          ))}
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-4 text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">
+            Acesse diretamente:
+          </span>
+          <div className="ml-auto flex flex-wrap gap-1">
+            <QuickLink to={clinicPath("/treatments")} icon={StethoscopeIcon}>
+              Tratamentos
+            </QuickLink>
+            <QuickLink to={clinicPath("/templates")} icon={RecordIcon}>
+              Modelos
+            </QuickLink>
+            <QuickLink to={clinicPath("/measures")} icon={HeartPulseIcon}>
+              Medidas
+            </QuickLink>
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mt-12 grid gap-6 md:grid-cols-2"
-      >
+      <section className="mt-6 grid gap-4 md:grid-cols-2">
         <EmptyPanel
           title="Próximos atendimentos"
-          linkLabel="Ver agenda →"
+          linkLabel="Ver agenda"
           linkTo={clinicPath("/treatments")}
           headline="Nenhum atendimento agendado."
           dim="A agenda aparece aqui assim que o primeiro tratamento for iniciado."
@@ -449,15 +395,15 @@ function EmptyHero({ clinicPath }: { clinicPath: (path?: string) => string }) {
         />
         <EmptyPanel
           title="Vacinas a vencer"
-          linkLabel="Ver catálogo →"
+          linkLabel="Ver catálogo"
           linkTo={clinicPath("/vaccines/catalog")}
           headline="Nenhuma vacina próxima do vencimento."
           dim="Após cadastrar pacientes e suas vacinas, alertas aparecem aqui automaticamente."
           ctaLabel="Cadastrar primeira vacina"
           ctaTo={clinicPath("/vaccines")}
-          icon={IconVaccine}
+          icon={SyringeIcon}
         />
-      </motion.section>
+      </section>
     </>
   );
 }
@@ -468,15 +414,15 @@ function QuickLink({
   children,
 }: {
   to: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<IconProps>;
   children: React.ReactNode;
 }) {
   return (
     <Link
       to={to}
-      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-foreground transition-colors hover:bg-secondary"
+      className="inline-flex h-[30px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-foreground transition-colors duration-150 hover:bg-muted"
     >
-      <Icon className="size-3.5 text-muted-foreground" />
+      <Icon size={14} className="text-muted-foreground" />
       {children}
     </Link>
   );
@@ -490,7 +436,7 @@ type EmptyPanelProps = {
   dim: string;
   ctaLabel: string;
   ctaTo: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<IconProps>;
 };
 
 function EmptyPanel({
@@ -501,38 +447,32 @@ function EmptyPanel({
   dim,
   ctaLabel,
   ctaTo,
+  icon: Icon = AppointmentIcon,
 }: EmptyPanelProps) {
   return (
-    <div className="rounded-[14px] border border-border bg-card px-6 py-6 sm:px-7 sm:py-7">
-      <div className="mb-4 flex items-baseline justify-between gap-2">
-        <h3 className="font-[var(--theme-font-serif)] text-[22px] font-normal tracking-tight text-card-foreground">
-          {title}
-        </h3>
+    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
         <Link
           to={linkTo}
-          className="text-xs text-muted-foreground transition-colors hover:text-primary"
+          className="inline-flex items-center gap-1 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
         >
           {linkLabel}
+          <ChevRIcon size={12} />
         </Link>
       </div>
-      <div className="flex flex-col items-start gap-2 px-1 pt-3.5 pb-2 text-[13.5px] leading-[1.6] text-muted-foreground">
-        <div
-          aria-hidden="true"
-          className="mb-1 flex gap-1.5 text-foreground/40"
-        >
-          <span className="block h-0.5 w-7 rounded-sm bg-current opacity-50" />
-          <span className="block h-0.5 w-4 rounded-sm bg-current opacity-30" />
-          <span className="block h-0.5 w-2.5 rounded-sm bg-current opacity-20" />
-        </div>
-        <div>{headline}</div>
-        <div className="text-xs text-muted-foreground/70">{dim}</div>
-        <Link
-          to={ctaTo}
-          className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-        >
-          {ctaLabel}
-          <IconArrowRight className="size-3" />
-        </Link>
+      <div className="flex flex-col items-start gap-1.5">
+        <span className="mb-1 grid size-12 place-items-center rounded-full bg-muted text-foreground">
+          <Icon size={20} />
+        </span>
+        <p className="text-sm font-semibold text-foreground">{headline}</p>
+        <p className="text-[13px] text-muted-foreground">{dim}</p>
+        <Button asChild variant="link" size="sm" className="mt-1">
+          <Link to={ctaTo}>
+            {ctaLabel}
+            <ChevRIcon />
+          </Link>
+        </Button>
       </div>
     </div>
   );

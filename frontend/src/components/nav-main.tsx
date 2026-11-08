@@ -51,7 +51,7 @@ export function NavMain({ items }: { items: AppNavItem[] }) {
               isActive={item.url === activeUrl}
             >
               <NavLink to={clinicPath(item.url)}>
-                <item.icon />
+                <item.icon size={18} />
                 <span>{item.title}</span>
               </NavLink>
             </SidebarMenuButton>

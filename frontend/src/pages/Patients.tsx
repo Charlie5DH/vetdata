@@ -20,12 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-} from "@tabler/icons-react";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import {
   flexRender,
   getCoreRowModel,
@@ -40,10 +35,11 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 import { patientColumns } from "@/pages/patients/columns";
 import { DataTableToolbar } from "@/components/table/data-table-toolbar";
+import { ChevLIcon, ChevRIcon, PlusIcon } from "@/components/icons/vetdata-icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -61,36 +57,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageLayout } from "@/components/layout/page-layout";
 import { usePatients } from "@/api/patients";
+import { useClinicPath } from "@/lib/clinic-routes";
 import type { Patient } from "@/types";
 
-function DraggableRow({ row, index }: { row: Row<Patient>; index: number }) {
+function DraggableRow({ row }: { row: Row<Patient> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   });
 
   return (
-    <motion.tr
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.3 }}
+    <TableRow
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:bg-card data-[dragging=true]:opacity-80"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
       }}
     >
       {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
+        <TableCell
+          key={cell.id}
+          className={
+            cell.column.id === "drag" || cell.column.id === "select"
+              ? "w-10 pr-0"
+              : cell.column.id === "actions"
+                ? "w-14 pl-0"
+                : undefined
+          }
+        >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
       ))}
-    </motion.tr>
+    </TableRow>
   );
 }
 
@@ -169,112 +173,95 @@ function DataTable({ data: initialData }: { data: Patient[] }) {
   }, [data]);
 
   return (
-    <Tabs defaultValue="active" className="w-full flex flex-col gap-4">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <DataTableToolbar
-          table={table}
-          searchColumn="patient"
-          searchPlaceholder="Filtrar pacientes..."
-          filterOptions={{
-            label: "Espécie",
-            columnId: "species",
-            options: uniqueSpecies,
-          }}
-          leftExtra={
-            <TabsList>
-              <TabsTrigger value="active">Ativos</TabsTrigger>
-              <TabsTrigger value="inactive">Inativos</TabsTrigger>
-            </TabsList>
-          }
-        />
-      </motion.div>
+    <Tabs
+      defaultValue="active"
+      className="w-full gap-0 overflow-hidden rounded-xl border border-border bg-card"
+    >
+      <DataTableToolbar
+        table={table}
+        searchColumn="patient"
+        searchPlaceholder="Filtrar pacientes..."
+        filterOptions={{
+          label: "Espécie",
+          columnId: "species",
+          options: uniqueSpecies,
+        }}
+        leftExtra={
+          <TabsList>
+            <TabsTrigger value="active">Ativos</TabsTrigger>
+            <TabsTrigger value="inactive">Inativos</TabsTrigger>
+          </TabsList>
+        }
+      />
 
       <TabsContent value="active" className="m-0">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="rounded-md border bg-card"
+        <DndContext
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+          id={sortableId}
         >
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                <SortableContext
+                  items={dataIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {table.getRowModel().rows.map((row) => (
+                    <DraggableRow key={row.id} row={row} />
+                  ))}
+                </SortableContext>
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={patientColumns.length}
+                    className="h-24 text-center text-muted-foreground"
                   >
-                    {table.getRowModel().rows.map((row, index) => (
-                      <DraggableRow key={row.id} row={row} index={index} />
-                    ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={patientColumns.length}
-                      className="h-24 text-center"
-                    >
-                      Nenhum resultado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
-        </motion.div>
+                    Nenhum resultado.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </DndContext>
       </TabsContent>
       <TabsContent value="inactive" className="m-0">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="rounded-md border p-8 text-center text-muted-foreground"
-        >
+        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
           Nenhum paciente inativo encontrado.
-        </motion.div>
+        </div>
       </TabsContent>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+      <div className="flex flex-col gap-3 border-t border-border px-4 py-2.5 text-[12.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="hidden flex-1 tabular-nums lg:flex">
           {table.getFilteredSelectedRowModel().rows.length} de{" "}
           {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
         </div>
         <div className="flex w-full flex-wrap items-center gap-3 sm:gap-4 lg:w-fit">
           <div className="hidden items-center gap-2 lg:flex">
-            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+            <Label
+              htmlFor="rows-per-page"
+              className="text-[12.5px] font-medium text-muted-foreground"
+            >
               Linhas por página
             </Label>
             <Select
@@ -297,69 +284,65 @@ function DataTable({ data: initialData }: { data: Patient[] }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex w-fit items-center justify-center text-sm font-medium">
+          <div className="flex w-fit items-center justify-center tabular-nums">
             Página {table.getState().pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>
-          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              size="icon-sm"
+              className="hidden lg:inline-flex"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
               <span className="sr-only">Ir para a primeira página</span>
-              <IconChevronsLeft className="h-4 w-4" />
+              <ChevronsLeft />
             </Button>
             <Button
               variant="outline"
-              className="size-8"
-              size="icon"
+              size="icon-sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
               <span className="sr-only">Ir para a página anterior</span>
-              <IconChevronLeft className="h-4 w-4" />
+              <ChevLIcon />
             </Button>
             <Button
               variant="outline"
-              className="size-8"
-              size="icon"
+              size="icon-sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
               <span className="sr-only">Ir para a próxima página</span>
-              <IconChevronRight className="h-4 w-4" />
+              <ChevRIcon />
             </Button>
             <Button
               variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
+              size="icon-sm"
+              className="hidden lg:inline-flex"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
               <span className="sr-only">Ir para a última página</span>
-              <IconChevronsRight className="h-4 w-4" />
+              <ChevronsRight />
             </Button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </Tabs>
   );
 }
 
 export default function Patients() {
+  const { clinicPath } = useClinicPath();
   const { data: patients, isLoading, error } = usePatients();
 
   if (isLoading) {
     return (
       <PageLayout title="Pacientes">
-        <div className="flex items-center justify-center h-full">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-8 w-8 border-b-2 border-primary"
-          />
+        <div className="flex h-40 items-center justify-center">
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       </PageLayout>
     );
@@ -368,19 +351,26 @@ export default function Patients() {
   if (error) {
     return (
       <PageLayout title="Pacientes">
-        <div className="text-destructive">Erro ao carregar pacientes</div>
+        <div className="text-sm text-destructive">
+          Erro ao carregar pacientes
+        </div>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Patient Management">
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground">
-          Visualize e gerencie todos os pacientes cadastrados, seus tutores e
-          histórico médico.
-        </p>
-      </div>
+    <PageLayout
+      title="Pacientes"
+      description="Visualize e gerencie todos os pacientes cadastrados, seus tutores e histórico médico."
+      actions={
+        <Button asChild variant="cta">
+          <Link to={clinicPath("/patients/new")}>
+            <PlusIcon />
+            Novo paciente
+          </Link>
+        </Button>
+      }
+    >
       <DataTable data={patients || []} />
     </PageLayout>
   );

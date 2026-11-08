@@ -1,8 +1,8 @@
 "use client";
 
+import { SearchIcon } from "@/components/icons/vetdata-icons";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SidebarInput } from "@/components/ui/sidebar";
-import { SearchIcon } from "lucide-react";
 
 interface SearchFormProps extends React.ComponentProps<"form"> {
   placeholder?: string;
@@ -25,12 +25,15 @@ export function SearchForm({
         <Label htmlFor="search" className="sr-only">
           Buscar
         </Label>
-        <SidebarInput
+        <Input
           id="search"
           placeholder={placeholder}
-          className="h-12 min-h-12 px-3 pl-9"
+          className="h-[34px] rounded-full pr-3.5 pl-10 text-[13.5px] md:text-[13.5px]"
         />
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 opacity-50 select-none" />
+        <SearchIcon
+          size={16}
+          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted-foreground select-none"
+        />
       </div>
     </form>
   );

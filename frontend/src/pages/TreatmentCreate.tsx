@@ -22,14 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  IconPaw,
-  IconTemplate,
-  IconNotes,
-  IconLoader2,
-  IconCheck,
-} from "@tabler/icons-react";
-import { themeAccentClasses } from "@/lib/theme-styles";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 export default function TreatmentCreate() {
@@ -70,27 +63,21 @@ export default function TreatmentCreate() {
   const canSubmit = patientId && templateId && !createSession.isPending;
 
   return (
-    <PageLayout title="Novo Tratamento">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <PageLayout
+      title="Novo tratamento"
+      description="Escolha o paciente e o modelo que define as medidas acompanhadas na sessão."
+    >
+      <form onSubmit={handleSubmit} className="flex max-w-3xl flex-col gap-4">
         {/* Patient Selection */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.chart1.icon}`}
-              >
-                <IconPaw className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Selecionar Paciente</CardTitle>
-                <CardDescription>
-                  Escolha o paciente que receberá o tratamento
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle>Selecionar paciente</CardTitle>
+            <CardDescription>
+              Escolha o paciente que receberá o tratamento
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="patient">Paciente *</Label>
               <Select
                 value={patientId}
@@ -103,7 +90,7 @@ export default function TreatmentCreate() {
                 <SelectContent>
                   {patients?.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id}>
-                      {patient.name} - {patient.species}
+                      {patient.name} · {patient.species}
                       {patient.breed ? ` (${patient.breed})` : ""}
                     </SelectItem>
                   ))}
@@ -116,22 +103,13 @@ export default function TreatmentCreate() {
         {/* Template Selection */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.chart5.icon}`}
-              >
-                <IconTemplate className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Modelo de Tratamento</CardTitle>
-                <CardDescription>
-                  Escolha o modelo que define as medidas a serem monitoradas
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle>Modelo de tratamento</CardTitle>
+            <CardDescription>
+              Escolha o modelo que define as medidas a serem monitoradas
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="template">Modelo *</Label>
               <Select
                 value={templateId}
@@ -145,7 +123,7 @@ export default function TreatmentCreate() {
                   {templates?.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}
-                      {template.description && ` - ${template.description}`}
+                      {template.description && ` · ${template.description}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -158,22 +136,13 @@ export default function TreatmentCreate() {
         {/* Notes (Optional) */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.chart2.icon}`}
-              >
-                <IconNotes className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Notas</CardTitle>
-                <CardDescription>
-                  Adicione observações sobre este tratamento (opcional)
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle>Notas</CardTitle>
+            <CardDescription>
+              Adicione observações sobre este tratamento (opcional)
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="notes">Observações</Label>
               <Textarea
                 id="notes"
@@ -188,33 +157,26 @@ export default function TreatmentCreate() {
         </Card>
 
         {/* Actions */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(-1)}
-                disabled={createSession.isPending}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={!canSubmit} className="min-w-32">
-                {createSession.isPending ? (
-                  <>
-                    <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <IconCheck className="mr-2 h-4 w-4" />
-                    Criar Tratamento
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            disabled={createSession.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" variant="cta" disabled={!canSubmit}>
+            {createSession.isPending ? (
+              <>
+                <Spinner />
+                Criando...
+              </>
+            ) : (
+              "Criar tratamento"
+            )}
+          </Button>
+        </div>
       </form>
     </PageLayout>
   );

@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import { Loader2Icon } from "lucide-react";
+
+import { ArrowLIcon } from "@/components/icons/vetdata-icons";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const BR_STATES = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -40,45 +47,6 @@ export function validateClinicEssentials(values: ClinicEssentialsValues): Errors
     errors.state = "UF inválida";
   }
   return errors;
-}
-
-type ArrowLeftProps = { className?: string };
-
-function ArrowLeft({ className }: ArrowLeftProps) {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M19 12H5" />
-      <path d="M11 18l-6-6 6-6" />
-    </svg>
-  );
-}
-
-function ArrowRight() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="M13 6l6 6-6 6" />
-    </svg>
-  );
 }
 
 type Props = {
@@ -138,150 +106,147 @@ export function ClinicEssentialsForm({
     await onSubmit(values);
   };
 
+  const submitButton = (
+    <Button
+      type="submit"
+      variant="cta"
+      className="h-10 w-full"
+      disabled={submitting}
+    >
+      {submitting ? (
+        <>
+          <Loader2Icon className="animate-spin" /> {submitPendingLabel}
+        </>
+      ) : (
+        submitLabel
+      )}
+    </Button>
+  );
+
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <div className="auth-field">
-        <label className="auth-field-label" htmlFor="clinic-name">
+    <form
+      className="flex flex-col gap-3 text-left"
+      onSubmit={handleSubmit}
+      noValidate
+    >
+      <div className="flex flex-col gap-1.5">
+        <label className="sr-only" htmlFor="clinic-name">
           Nome da clínica
         </label>
-        <input
+        <Input
           id="clinic-name"
-          className={"auth-input" + (errors.name ? " auth-input--error" : "")}
+          aria-invalid={Boolean(errors.name)}
           value={values.name}
           onChange={handleChange("name")}
-          placeholder="Clínica Veterinária Bem Estar"
+          placeholder="Nome da clínica"
           autoFocus
         />
-        {errors.name ? (
-          <div className="auth-field-error">{errors.name}</div>
-        ) : null}
+        {errors.name ? <FieldError>{errors.name}</FieldError> : null}
       </div>
 
-      <div className="auth-field">
-        <label className="auth-field-label" htmlFor="clinic-email">
+      <div className="flex flex-col gap-1.5">
+        <label className="sr-only" htmlFor="clinic-email">
           E-mail de contato
-          {prefilledEmail ? (
-            <span className="auth-field-hint"> · prefilled</span>
-          ) : null}
         </label>
-        <input
+        <Input
           id="clinic-email"
           type="email"
-          className={
-            "auth-input" + (errors.contact_email ? " auth-input--error" : "")
-          }
+          aria-invalid={Boolean(errors.contact_email)}
           value={values.contact_email}
           onChange={handleChange("contact_email")}
-          placeholder="contato@clinica.com"
+          placeholder="E-mail de contato"
         />
         {errors.contact_email ? (
-          <div className="auth-field-error">{errors.contact_email}</div>
+          <FieldError>{errors.contact_email}</FieldError>
+        ) : prefilledEmail ? (
+          <p className="px-5 text-xs text-muted-foreground">
+            Preenchido com o e-mail da sua conta
+          </p>
         ) : null}
       </div>
 
-      <div className="auth-field">
-        <label className="auth-field-label" htmlFor="clinic-phone">
-          Telefone <span className="auth-field-hint">· opcional</span>
+      <div className="flex flex-col gap-1.5">
+        <label className="sr-only" htmlFor="clinic-phone">
+          Telefone (opcional)
         </label>
-        <input
+        <Input
           id="clinic-phone"
           type="tel"
-          className="auth-input"
           value={values.contact_phone}
           onChange={handleChange("contact_phone")}
-          placeholder="(11) 99999-9999"
+          placeholder="Telefone (opcional)"
         />
       </div>
 
-      <div className="auth-row auth-row--32">
-        <div className="auth-field">
-          <label className="auth-field-label" htmlFor="clinic-city">
+      <div className="grid grid-cols-[1fr_96px] gap-3">
+        <div className="flex flex-col gap-1.5">
+          <label className="sr-only" htmlFor="clinic-city">
             Cidade
           </label>
-          <input
+          <Input
             id="clinic-city"
-            className="auth-input"
             value={values.city}
             onChange={handleChange("city")}
-            placeholder="São Paulo"
+            placeholder="Cidade"
           />
         </div>
-        <div className="auth-field">
-          <label className="auth-field-label" htmlFor="clinic-state">
+        <div className="flex flex-col gap-1.5">
+          <label className="sr-only" htmlFor="clinic-state">
             UF
           </label>
-          <input
+          <Input
             id="clinic-state"
-            className={
-              "auth-input auth-input--uf" +
-              (errors.state ? " auth-input--error" : "")
-            }
+            aria-invalid={Boolean(errors.state)}
+            className="text-center tracking-[0.08em] uppercase"
             value={values.state}
             onChange={handleChange("state")}
-            placeholder="SP"
+            placeholder="UF"
             maxLength={2}
           />
-          {errors.state ? (
-            <div className="auth-field-error">{errors.state}</div>
-          ) : null}
         </div>
       </div>
+      {errors.state ? (
+        <FieldError className="text-right">{errors.state}</FieldError>
+      ) : null}
 
-      <p className="auth-defer-note">
+      <p className="rounded-lg bg-muted px-3.5 py-2.5 text-xs leading-normal text-muted-foreground">
         CNPJ, endereço completo e razão social podem ser preenchidos depois nas
         configurações da clínica.
       </p>
 
       {externalError ? (
-        <div className="auth-error-banner" role="alert">
-          {externalError}
-        </div>
+        <Alert variant="destructive">{externalError}</Alert>
       ) : null}
 
       {onBack ? (
-        <div className="auth-actions">
-          <button
+        <div className="grid grid-cols-[auto_1fr] gap-2.5">
+          <Button
             type="button"
-            className="auth-btn-ghost"
+            variant="outline"
+            className="h-10"
             onClick={onBack}
             disabled={submitting || backDisabled}
           >
-            <ArrowLeft />
+            <ArrowLIcon />
             Voltar
-          </button>
-          <button
-            type="submit"
-            className="auth-btn-primary"
-            disabled={submitting}
-          >
-            {submitting ? (
-              <>
-                <span className="auth-spinner" /> {submitPendingLabel}
-              </>
-            ) : (
-              <>
-                {submitLabel} <ArrowRight />
-              </>
-            )}
-          </button>
+          </Button>
+          {submitButton}
         </div>
       ) : (
-        <button
-          type="submit"
-          className="auth-btn-primary"
-          disabled={submitting}
-        >
-          {submitting ? (
-            <>
-              <span className="auth-spinner" /> {submitPendingLabel}
-            </>
-          ) : (
-            <>
-              {submitLabel} <ArrowRight />
-            </>
-          )}
-        </button>
+        submitButton
       )}
     </form>
+  );
+}
+
+function FieldError({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <p className={cn("px-5 text-xs text-destructive", className)}>{children}</p>
   );
 }

@@ -5,9 +5,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { isAxiosError } from "axios";
 
+import { EyeOffIcon, Loader2Icon } from "lucide-react";
+
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleButton } from "@/components/auth/google-button";
+import { EyeIcon } from "@/components/icons/vetdata-icons";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { frontendEnv } from "@/lib/env";
 
 const signInSchema = z.object({
@@ -23,69 +30,6 @@ function extractErrorMessage(error: unknown, fallback: string): string {
     if (typeof detail === "string") return detail;
   }
   return fallback;
-}
-
-function EyeIcon({ open }: { open: boolean }) {
-  return open ? (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ) : (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 3l18 18" />
-      <path d="M10.6 10.6a3 3 0 0 0 4.2 4.2" />
-      <path d="M9.9 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.4 4.3" />
-      <path d="M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12l5 5L20 7" />
-    </svg>
-  );
-}
-
-function ArrowRight() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="M13 6l6 6-6 6" />
-    </svg>
-  );
 }
 
 export default function SignInPage() {
@@ -152,93 +96,81 @@ export default function SignInPage() {
     >
       <div className="auth-mode-fade">
         <div className="auth-heading">
-          <h1>
-            Entrar no <em>VetData</em>
-          </h1>
+          <h1>Entrar no VetData</h1>
           <p>Acesse o painel da sua clínica</p>
         </div>
 
-        {googleEnabled ? (
-          <>
-            <GoogleButton
-              onCredential={onGoogleCredential}
-              disabled={submitting}
-            />
-            <div className="auth-divider">
-              <span>ou</span>
-            </div>
-          </>
-        ) : null}
-
-        <form onSubmit={handleSubmit(onSubmit)} className="auth-form" noValidate>
-          <div className="auth-field">
-            <label className="auth-field-label" htmlFor="email">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-3 text-left"
+          noValidate
+        >
+          <div className="flex flex-col gap-1.5">
+            <label className="sr-only" htmlFor="email">
               E-mail
             </label>
-            <input
+            <Input
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="voce@clinica.com"
+              placeholder="E-mail"
               aria-invalid={Boolean(errors.email)}
               disabled={submitting}
-              className={
-                "auth-input" + (errors.email ? " auth-input--error" : "")
-              }
               {...register("email")}
             />
             {errors.email ? (
-              <div className="auth-field-error">{errors.email.message}</div>
+              <p className="px-5 text-xs text-destructive">
+                {errors.email.message}
+              </p>
             ) : null}
           </div>
 
-          <div className="auth-field">
-            <label className="auth-field-label" htmlFor="password">
+          <div className="flex flex-col gap-1.5">
+            <label className="sr-only" htmlFor="password">
               Senha
             </label>
-            <div className="auth-input-wrap">
-              <input
+            <div className="relative">
+              <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                placeholder="Sua senha"
+                placeholder="Senha"
                 aria-invalid={Boolean(errors.password)}
                 disabled={submitting}
-                className={
-                  "auth-input auth-input--with-action" +
-                  (errors.password ? " auth-input--error" : "")
-                }
+                className="pr-12"
                 {...register("password")}
               />
               <button
                 type="button"
-                className="auth-input-eye"
+                className="absolute top-1/2 right-1 grid size-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-stone-500 transition-colors hover:bg-accent hover:text-foreground"
                 onClick={() => setShowPassword((s) => !s)}
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               >
-                <EyeIcon open={showPassword} />
+                {showPassword ? (
+                  <EyeOffIcon className="size-4" />
+                ) : (
+                  <EyeIcon size={16} />
+                )}
               </button>
             </div>
             {errors.password ? (
-              <div className="auth-field-error">{errors.password.message}</div>
+              <p className="px-5 text-xs text-destructive">
+                {errors.password.message}
+              </p>
             ) : null}
           </div>
 
-          <div className="auth-helper-row">
-            <label className="auth-check">
-              <input
-                type="checkbox"
+          <div className="flex items-center justify-between px-1">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-[13px] text-stone-700 select-none">
+              <Checkbox
                 checked={remember}
-                onChange={(event) => setRemember(event.target.checked)}
+                onCheckedChange={(checked) => setRemember(checked === true)}
               />
-              <span className="auth-check__box">
-                <CheckIcon />
-              </span>
-              <span>Lembrar de mim</span>
+              Lembrar de mim
             </label>
             <button
               type="button"
-              className="auth-link"
+              className="cursor-pointer text-[13px] font-semibold text-foreground underline-offset-4 hover:underline"
               onClick={(event) => event.preventDefault()}
             >
               Esqueceu a senha?
@@ -246,27 +178,36 @@ export default function SignInPage() {
           </div>
 
           {submitError ? (
-            <div className="auth-error-banner" role="alert">
-              {submitError}
-            </div>
+            <Alert variant="destructive">{submitError}</Alert>
           ) : null}
 
-          <button
+          <Button
             type="submit"
-            className="auth-btn-primary"
+            variant="cta"
+            className="h-10 w-full"
             disabled={submitting}
           >
             {isSubmitting ? (
               <>
-                <span className="auth-spinner" /> Aguarde…
+                <Loader2Icon className="animate-spin" /> Aguarde…
               </>
             ) : (
-              <>
-                Entrar <ArrowRight />
-              </>
+              "Entrar"
             )}
-          </button>
+          </Button>
         </form>
+
+        {googleEnabled ? (
+          <>
+            <div className="auth-divider">
+              <span>ou</span>
+            </div>
+            <GoogleButton
+              onCredential={onGoogleCredential}
+              disabled={submitting}
+            />
+          </>
+        ) : null}
       </div>
     </AuthShell>
   );

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Building2, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Clinic, ClinicCreatePayload } from "@/types";
@@ -10,6 +9,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { CheckIcon, ClinicIcon } from "@/components/icons/vetdata-icons";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -164,8 +165,8 @@ export function ClinicForm({
   };
 
   const additionalInfoFields = (
-    <div className="grid gap-6 pb-2 sm:grid-cols-2">
-      <div className="space-y-2">
+    <div className="grid gap-4 pb-2 sm:grid-cols-2">
+      <div className="grid gap-1.5 content-start">
         <Label htmlFor="clinic-legal-name">Razão social</Label>
         <Input
           id="clinic-legal-name"
@@ -176,7 +177,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-1.5 content-start">
         <Label htmlFor="clinic-registration-document">CNPJ ou registro</Label>
         <Input
           id="clinic-registration-document"
@@ -189,7 +190,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-1.5 content-start">
         <Label htmlFor="clinic-contact-email">E-mail da clínica</Label>
         <Input
           id="clinic-contact-email"
@@ -203,7 +204,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-1.5 content-start">
         <Label htmlFor="clinic-contact-phone">Telefone</Label>
         <Input
           id="clinic-contact-phone"
@@ -216,7 +217,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 sm:col-span-2">
+      <div className="grid gap-1.5 content-start sm:col-span-2">
         <Label htmlFor="clinic-address-line1">Endereço principal</Label>
         <Input
           id="clinic-address-line1"
@@ -229,7 +230,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 sm:col-span-2">
+      <div className="grid gap-1.5 content-start sm:col-span-2">
         <Label htmlFor="clinic-address-line2">Complemento</Label>
         <Input
           id="clinic-address-line2"
@@ -242,7 +243,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-1.5 content-start">
         <Label htmlFor="clinic-city">Cidade</Label>
         <Input
           id="clinic-city"
@@ -253,7 +254,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-1.5 content-start">
         <Label htmlFor="clinic-state">Estado</Label>
         <Input
           id="clinic-state"
@@ -264,7 +265,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 sm:max-w-xs">
+      <div className="grid gap-1.5 content-start sm:max-w-xs">
         <Label htmlFor="clinic-postal-code">CEP</Label>
         <Input
           id="clinic-postal-code"
@@ -275,7 +276,7 @@ export function ClinicForm({
         />
       </div>
 
-      <div className="space-y-2 sm:col-span-2">
+      <div className="grid gap-1.5 content-start sm:col-span-2">
         <Label htmlFor="clinic-notes">Observações</Label>
         <Textarea
           id="clinic-notes"
@@ -289,14 +290,12 @@ export function ClinicForm({
   );
 
   return (
-    <form className="space-y-8" onSubmit={handleSubmit}>
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-1.5 content-start sm:col-span-2">
           <div className="flex items-center justify-between gap-3">
             <Label htmlFor="clinic-name">Nome da clínica</Label>
-            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-              Obrigatório
-            </span>
+            <span className="text-xs text-muted-foreground">Obrigatório</span>
           </div>
           <Input
             id="clinic-name"
@@ -315,35 +314,30 @@ export function ClinicForm({
           collapsible
           value={expandedSection}
           onValueChange={(value) => setExpandedSection(value || undefined)}
-          className="overflow-visible border-none bg-transparent"
+          className="border-t border-border"
         >
-          <AccordionItem
-            value="additional-info"
-            className="overflow-hidden border border-border/70 bg-muted/20 shadow-sm transition-all duration-200 hover:border-primary/30 hover:bg-muted/35 hover:shadow-md data-open:border-border/70 data-open:bg-muted/28 data-open:shadow-sm"
-          >
-            <AccordionTrigger className="w-full cursor-pointer px-5 py-4 hover:no-underline focus-visible:outline-none">
-              <div className="flex items-start gap-3">
-                <div>
-                  <p className="font-medium text-foreground">
-                    Mais informações
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Todos os campos abaixo são opcionais e podem ser preenchidos
-                    depois.
-                  </p>
-                </div>
+          <AccordionItem value="additional-info">
+            <AccordionTrigger className="w-full cursor-pointer py-3.5 hover:no-underline">
+              <div>
+                <p className="text-base font-semibold text-foreground">
+                  Mais informações
+                </p>
+                <p className="mt-0.5 text-xs font-normal text-muted-foreground">
+                  Todos os campos abaixo são opcionais e podem ser preenchidos
+                  depois.
+                </p>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-5">
-              {additionalInfoFields}
-            </AccordionContent>
+            <AccordionContent>{additionalInfoFields}</AccordionContent>
           </AccordionItem>
         </Accordion>
       ) : (
-        <section className="space-y-5 rounded-2xl border border-border/70 bg-muted/20 p-5 shadow-sm">
+        <section className="space-y-4 border-t border-border pt-5">
           <div>
-            <p className="font-medium text-foreground">Mais informações</p>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            <h3 className="text-base font-semibold text-foreground">
+              Mais informações
+            </h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Todos os campos abaixo são opcionais e podem ser preenchidos ou
               atualizados a qualquer momento.
             </p>
@@ -356,26 +350,27 @@ export function ClinicForm({
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Button
             type="submit"
+            variant="cta"
             disabled={isSubmitting}
-            className="w-full sm:w-auto sm:min-w-44"
+            className="w-full sm:w-auto"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Spinner />
                 {submitPendingLabel}
               </>
             ) : (
               <>
-                <Save className="mr-2 size-4" />
+                <CheckIcon />
                 {submitLabel}
               </>
             )}
           </Button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
-          <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
-            <Building2 className="size-4 text-primary" />
+        <div className="rounded-lg border border-border bg-muted px-4 py-3 text-[13.5px] text-muted-foreground">
+          <div className="mb-1 flex items-center gap-2 font-semibold text-foreground">
+            <ClinicIcon size={16} className="text-foreground" />
             Cadastro da clínica em modo de visualização
           </div>
           <p>

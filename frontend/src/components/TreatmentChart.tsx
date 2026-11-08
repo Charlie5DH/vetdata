@@ -51,6 +51,29 @@ const COLORS = [
   "var(--chart-5)",
 ];
 
+// Line points: 3px dots, 4.5px end dot with a card ring (DESIGN.md §10)
+function renderPointDot(
+  { cx, cy, index }: { cx?: number; cy?: number; index?: number },
+  color: string,
+  isLast: boolean,
+) {
+  if (cx === undefined || cy === undefined) {
+    return <g key={`dot-${index}`} />;
+  }
+
+  return (
+    <circle
+      key={`dot-${index}`}
+      cx={cx}
+      cy={cy}
+      r={isLast ? 4.5 : 3}
+      fill={color}
+      stroke={isLast ? "var(--card)" : "none"}
+      strokeWidth={isLast ? 2 : 0}
+    />
+  );
+}
+
 function TreatmentChartTooltip({
   active,
   labels,
@@ -67,8 +90,8 @@ function TreatmentChartTooltip({
   }
 
   return (
-    <div className="grid min-w-56 gap-2 rounded-lg border border-border/50 bg-background px-3 py-2 text-xs shadow-xl">
-      <div className="font-medium">{dataPoint.fullTimestamp}</div>
+    <div className="grid min-w-56 gap-2 rounded-lg bg-primary px-3 py-2 text-xs leading-tight text-primary-foreground shadow-md">
+      <div className="font-semibold text-forest-300 tabular-nums">{dataPoint.fullTimestamp}</div>
       <div className="grid gap-1.5">
         {payload.map((item) => {
           if (
@@ -86,14 +109,14 @@ function TreatmentChartTooltip({
             >
               <div className="flex items-center gap-2">
                 <div
-                  className="h-2.5 w-2.5 rounded-[2px]"
+                  className="size-2.5 rounded-[3px] outline outline-1 outline-primary-foreground/30"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-muted-foreground">
+                <span className="text-forest-200">
                   {labels[item.dataKey] ?? item.dataKey}
                 </span>
               </div>
-              <span className="font-mono font-medium tabular-nums text-foreground">
+              <span className="font-semibold tabular-nums text-primary-foreground">
                 {typeof item.value === "number"
                   ? item.value.toLocaleString("pt-BR")
                   : item.value}
@@ -103,8 +126,8 @@ function TreatmentChartTooltip({
         })}
       </div>
       {dataPoint.nonNumericValues.length > 0 && (
-        <div className="grid gap-1.5 border-t border-border/50 pt-2">
-          <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <div className="grid gap-1.5 border-t border-primary-foreground/15 pt-2">
+          <div className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-forest-300">
             Medidas adicionais
           </div>
           {dataPoint.nonNumericValues.map((entry) => (
@@ -112,11 +135,11 @@ function TreatmentChartTooltip({
               key={entry.measureId}
               className="flex items-start justify-between gap-3"
             >
-              <span className="text-muted-foreground">
+              <span className="text-forest-200">
                 {entry.label}
                 {entry.unit ? ` (${entry.unit})` : ""}
               </span>
-              <span className="text-right font-medium text-foreground">
+              <span className="text-right font-semibold text-primary-foreground">
                 {entry.value}
               </span>
             </div>
@@ -126,6 +149,10 @@ function TreatmentChartTooltip({
     </div>
   );
 }
+
+
+const formatStat = (value: number) =>
+  value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
 export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
   // Filter to only numeric measures
@@ -167,7 +194,7 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        fullTimestamp: new Date(log.logged_at).toLocaleString(),
+        fullTimestamp: new Date(log.logged_at).toLocaleString("pt-BR"),
         nonNumericValues: [],
       };
 
@@ -214,6 +241,19 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
     return config;
   }, [numericMeasures]);
 
+  // Index of each series' last recorded point, drawn as the larger end dot
+  const lastPointIndex = useMemo(() => {
+    const result: Record<string, number> = {};
+    chartData.forEach((point, pointIndex) => {
+      numericMeasures.forEach((measure) => {
+        if (typeof point[measure.id] === "number") {
+          result[measure.id] = pointIndex;
+        }
+      });
+    });
+    return result;
+  }, [chartData, numericMeasures]);
+
   const toggleMeasure = (measureId: string) => {
     const newVisible = new Set(visibleMeasures);
     if (newVisible.has(measureId)) {
@@ -227,10 +267,10 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
   if (numericMeasures.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-muted-foreground">
+        <p className="text-base font-semibold text-foreground">
           Nenhuma medida numérica disponível para visualização.
         </p>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="mt-1.5 text-[13.5px] text-muted-foreground">
           Apenas medidas do tipo "número" podem ser exibidas no gráfico.
         </p>
       </div>
@@ -240,10 +280,10 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
   if (chartData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-muted-foreground">
+        <p className="text-base font-semibold text-foreground">
           Nenhum registro disponível para exibir no gráfico.
         </p>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="mt-1.5 text-[13.5px] text-muted-foreground">
           Adicione registros com valores numéricos para ver a visualização.
         </p>
       </div>
@@ -258,17 +298,18 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
           <Button
             key={measure.id}
             size="sm"
-            variant={visibleMeasures.has(measure.id) ? "default" : "outline"}
+            variant="outline"
+            aria-pressed={visibleMeasures.has(measure.id)}
             onClick={() => toggleMeasure(measure.id)}
-            className="gap-2"
+            className="h-7 gap-1.5 rounded-sm bg-card px-2.5 text-[12.5px] font-medium shadow-none hover:bg-muted aria-pressed:border-primary aria-pressed:bg-lemon-100"
           >
             <div
-              className="h-3 w-3 rounded-full"
+              className="size-2.5 rounded-[3px]"
               style={{ backgroundColor: COLORS[index % COLORS.length] }}
             />
             {measure.name}
             {measure.unit && (
-              <Badge variant="secondary" className="ml-1">
+              <Badge variant="secondary" className="h-[18px] px-1.5 text-[11px] font-medium">
                 {measure.unit}
               </Badge>
             )}
@@ -279,11 +320,11 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
       {/* Chart */}
       <ChartContainer config={chartConfig} className="h-100 w-full">
         <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="timestamp"
             tickLine={false}
-            axisLine={false}
+            axisLine={{ stroke: "var(--input)" }}
             tickMargin={8}
             angle={0}
             textAnchor="middle"
@@ -301,8 +342,20 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
                 dataKey={measure.id}
                 stroke={COLORS[index % COLORS.length]}
                 strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                dot={(props: { cx?: number; cy?: number; index?: number }) =>
+                  renderPointDot(
+                    props,
+                    COLORS[index % COLORS.length],
+                    props.index === lastPointIndex[measure.id],
+                  )
+                }
+                activeDot={{
+                  r: 4.5,
+                  strokeWidth: 2,
+                  stroke: "var(--card)",
+                }}
                 connectNulls
               />
             ) : null,
@@ -330,11 +383,11 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
             return (
               <div
                 key={measure.id}
-                className="p-4 rounded-lg border bg-card space-y-2"
+                className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-4"
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="h-2 w-2 rounded-full"
+                    className="size-2.5 rounded-[3px]"
                     style={{
                       backgroundColor:
                         COLORS[
@@ -342,31 +395,43 @@ export function TreatmentChart({ logs, measures }: TreatmentChartProps) {
                         ],
                     }}
                   />
-                  <span className="font-medium text-sm">{measure.name}</span>
+                  <span className="text-[13px] font-semibold text-foreground">{measure.name}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-[12.5px]">
                   <div>
                     <span className="text-muted-foreground">Atual:</span>
-                    <p className="font-medium">
-                      {current.toFixed(2)} {measure.unit}
+                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                      {formatStat(current)}{" "}
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {measure.unit}
+                      </span>
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Média:</span>
-                    <p className="font-medium">
-                      {avg.toFixed(2)} {measure.unit}
+                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                      {formatStat(avg)}{" "}
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {measure.unit}
+                      </span>
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Mín:</span>
-                    <p className="font-medium">
-                      {min.toFixed(2)} {measure.unit}
+                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                      {formatStat(min)}{" "}
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {measure.unit}
+                      </span>
                     </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Máx:</span>
-                    <p className="font-medium">
-                      {max.toFixed(2)} {measure.unit}
+                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                      {formatStat(max)}{" "}
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {measure.unit}
+                      </span>
                     </p>
                   </div>
                 </div>

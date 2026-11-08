@@ -18,14 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Owner } from "@/types";
-import { cn } from "@/lib/utils";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconSearch,
-} from "@tabler/icons-react";
+  ChevLIcon,
+  ChevRIcon,
+  SearchIcon,
+} from "@/components/icons/vetdata-icons";
 
 interface OwnerSelectionTableProps {
   owners: Owner[];
@@ -70,20 +68,23 @@ export function OwnerSelectionTable({
   };
 
   return (
-    <div className="space-y-4 border rounded-lg p-4 bg-muted/10">
-      <div className="space-y-2">
-        <div className="relative">
-          <IconSearch className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-4 py-3">
+        <div className="relative w-full sm:max-w-xs">
+          <SearchIcon
+            size={16}
+            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-stone-500"
+          />
           <Input
             placeholder="Buscar por nome ou email..."
             value={search}
             onChange={handleSearchChange}
-            className="bg-background pl-10"
+            className="h-[34px] pl-10 text-[13.5px]"
           />
         </div>
       </div>
 
-      <div className="rounded-md border bg-background">
+      <div>
         <RadioGroup
           value={selectedOwnerId}
           onValueChange={(value) => {
@@ -94,7 +95,9 @@ export function OwnerSelectionTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12.5">Sel.</TableHead>
+                <TableHead className="w-12 pr-0">
+                  <span className="sr-only">Selecionar</span>
+                </TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Sobrenome</TableHead>
                 <TableHead>Email</TableHead>
@@ -107,13 +110,11 @@ export function OwnerSelectionTable({
                 return (
                   <TableRow
                     key={owner.id}
-                    className={cn(
-                      "cursor-pointer hover:bg-muted/50 transition-colors",
-                      isSelected && "bg-primary/5",
-                    )}
+                    data-state={isSelected ? "selected" : undefined}
+                    className="cursor-pointer"
                     onClick={() => onSelect(String(owner.id))}
                   >
-                    <TableCell>
+                    <TableCell className="w-12 pr-0">
                       <RadioGroupItem
                         value={String(owner.id)}
                         id={`owner-${owner.id}`}
@@ -121,19 +122,17 @@ export function OwnerSelectionTable({
                         onClick={(e) => e.stopPropagation()}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-semibold text-foreground">
                       {owner.first_name}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-semibold text-foreground">
                       {owner.last_name}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {owner.email}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <span className="inline-flex items-center justify-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        {owner.patients?.length || 0}
-                      </span>
+                    <TableCell className="text-right tabular-nums">
+                      {owner.patients?.length || 0}
                     </TableCell>
                   </TableRow>
                 );
@@ -142,11 +141,15 @@ export function OwnerSelectionTable({
                 <TableRow>
                   <TableCell
                     colSpan={5}
-                    className="text-center py-12 text-muted-foreground"
+                    className="py-10 text-center text-muted-foreground"
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <IconSearch className="h-8 w-8 opacity-20" />
-                      <p>Nenhum tutor encontrado para "{search}"</p>
+                      <span className="grid size-12 place-items-center rounded-full bg-muted text-foreground">
+                        <SearchIcon size={20} />
+                      </span>
+                      <p className="text-sm">
+                        Nenhum tutor encontrado para "{search}"
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -156,12 +159,12 @@ export function OwnerSelectionTable({
         </RadioGroup>
       </div>
 
-      <div className="flex flex-col gap-3 border-t px-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-border px-4 py-2.5 text-[12.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">Linhas por pág.</p>
+            <p className="font-medium">Linhas por pág.</p>
             <Select value={`${pageSize}`} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="h-8 w-17.5">
+              <SelectTrigger size="sm" className="w-20">
                 <SelectValue placeholder={pageSize} />
               </SelectTrigger>
               <SelectContent side="top">
@@ -173,47 +176,53 @@ export function OwnerSelectionTable({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex w-25 items-center justify-center text-sm font-medium">
+          <div className="flex items-center justify-center tabular-nums">
             Pág. {page} de {totalPages || 1}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
+            type="button"
             variant="outline"
-            className="hidden h-8 w-8 p-0 lg:flex"
+            size="icon-sm"
+            className="hidden lg:inline-flex"
             onClick={() => setPage(1)}
             disabled={page === 1}
           >
             <span className="sr-only">Ir para primeira página</span>
-            <IconChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft />
           </Button>
           <Button
+            type="button"
             variant="outline"
-            className="h-8 w-8 p-0"
+            size="icon-sm"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
           >
             <span className="sr-only">Página anterior</span>
-            <IconChevronLeft className="h-4 w-4" />
+            <ChevLIcon />
           </Button>
           <Button
+            type="button"
             variant="outline"
-            className="h-8 w-8 p-0"
+            size="icon-sm"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages || totalPages === 0}
           >
             <span className="sr-only">Próxima página</span>
-            <IconChevronRight className="h-4 w-4" />
+            <ChevRIcon />
           </Button>
           <Button
+            type="button"
             variant="outline"
-            className="hidden h-8 w-8 p-0 lg:flex"
+            size="icon-sm"
+            className="hidden lg:inline-flex"
             onClick={() => setPage(totalPages)}
             disabled={page === totalPages || totalPages === 0}
           >
             <span className="sr-only">Ir para última página</span>
-            <IconChevronsRight className="h-4 w-4" />
+            <ChevronsRight />
           </Button>
         </div>
       </div>

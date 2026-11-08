@@ -1,0 +1,182 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Fonts: <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,300..800&family=IBM+Plex+Mono:wght@400;500&display=swap"> */
+
+:root {
+  --radius: 0.875rem;                 /* 14px cards */
+
+  --background: #F8F5EA;              /* cream-100 page */
+  --foreground: #2A3F2E;              /* forest-900 ink */
+  --card: #FCFAF4;
+  --card-foreground: #2A3F2E;
+  --popover: #FCFAF4;
+  --popover-foreground: #2A3F2E;
+  --primary: #F3DC7E;                 /* lemon: ONE primary action per view */
+  --primary-foreground: #2A3F2E;
+  --secondary: #ECE9DC;
+  --secondary-foreground: #2A3F2E;
+  --muted: #F1EEE2;
+  --muted-foreground: #686E62;
+  --accent: #F1EEE2;
+  --accent-foreground: #2A3F2E;
+  --destructive: #B4493B;
+  --destructive-foreground: #FFF8F3;
+  --border: #E9E6D8;
+  --input: #DEDAC8;
+  --ring: #7E957F;
+
+  --brand: #2A3F2E;
+  --brand-foreground: #F4F0E2;
+  --success: #3F7A4F;  --success-soft: #E1EEDC;
+  --warning: #9A6410;  --warning-soft: #F8EACB;
+  --info:    #4E6A80;  --info-soft:    #E2E9EC;
+  --destructive-soft: #F6E2DA;
+  --range: #DCEFDF;    --range-edge: #97CFA3;   /* clinical normal-range band */
+
+  --chart-1: #2A3F2E;
+  --chart-2: #C98424;
+  --chart-3: #7FA88A;
+  --chart-4: #DDB940;
+  --chart-5: #5F7A8C;
+
+  --sidebar: #2A3F2E;
+  --sidebar-foreground: #B8C5B4;
+  --sidebar-primary: #F3DC7E;
+  --sidebar-primary-foreground: #2A3F2E;
+  --sidebar-accent: #355039;
+  --sidebar-accent-foreground: #F8F5EA;
+  --sidebar-border: #355039;
+  --sidebar-ring: #7E957F;
+  --sidebar-width: 248px;
+  --sidebar-width-icon: 64px;
+}
+
+/* Imagined dark theme */
+.dark {
+  --background: #17231A;  --foreground: #EDE9DA;
+  --card: #1E2E22;        --card-foreground: #EDE9DA;
+  --popover: #213326;     --popover-foreground: #EDE9DA;
+  --primary: #EBD173;     --primary-foreground: #1E2E22;
+  --secondary: #2B3F2F;   --secondary-foreground: #EDE9DA;
+  --muted: #24362A;       --muted-foreground: #A9B3A4;
+  --accent: #2B3F2F;      --accent-foreground: #EDE9DA;
+  --destructive: #D9705F; --destructive-foreground: #1E2E22;
+  --border: #31463A;      --input: #3B5241;   --ring: #B8C5B4;
+  --brand: #EDE9DA;       --brand-foreground: #1E2E22;
+  --success: #8CC79A;  --success-soft: #24392A;
+  --warning: #E3B25A;  --warning-soft: #3A3220;
+  --info:    #9DB8CB;  --info-soft:    #223039;
+  --destructive-soft: #3D2622;
+  --range: #24392A;    --range-edge: #5E8B68;
+  --chart-1: #EDE9DA; --chart-2: #E0A04A; --chart-3: #8FBF9C; --chart-4: #EBD173; --chart-5: #8AA3B4;
+  --sidebar: #121C15;  --sidebar-foreground: #A9B3A4;
+  --sidebar-primary: #EBD173; --sidebar-primary-foreground: #1E2E22;
+  --sidebar-accent: #24362A;  --sidebar-accent-foreground: #EDE9DA;
+  --sidebar-border: #24362A;  --sidebar-ring: #B8C5B4;
+}
+
+@theme inline {
+  --font-sans: "Literata", "Merriweather", Georgia, serif;   /* the serif IS the UI font */
+  --font-serif: "Literata", "Merriweather", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-range: var(--range);
+  --color-range-edge: var(--range-edge);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-forest-950: #1E2E22;
+  --color-forest-900: #2A3F2E;
+  --color-forest-800: #355039;
+  --color-forest-700: #46634B;
+  --color-forest-600: #5E7B63;
+  --color-forest-500: #7E957F;
+  --color-forest-300: #B8C5B4;
+  --color-forest-200: #D5DDD0;
+  --color-mint-100: #DCEFDF;
+  --color-mint-300: #97CFA3;
+  --color-cream-50: #FCFAF4;
+  --color-cream-100: #F8F5EA;
+  --color-cream-200: #F1EEE2;
+  --color-cream-250: #ECE9DC;
+  --color-cream-300: #E9E6D8;
+  --color-cream-400: #DEDAC8;
+  --color-cream-500: #C9C5B1;
+  --color-stone-400: #B2B4A4;
+  --color-stone-500: #8A8F80;
+  --color-stone-600: #686E62;
+  --color-stone-700: #4A574C;
+  --color-lemon-100: #FBF3CF;
+  --color-lemon-200: #F8E9A8;
+  --color-lemon-300: #F3DC7E;
+  --color-lemon-400: #E5C658;
+  --color-lemon-600: #A88A24;
+  --color-ochre-500: #C98424;
+
+  --radius-sm: 6px;     /* chips, citations */
+  --radius-md: 8px;     /* OTP, menu items, flags, context chips */
+  --radius-lg: 12px;    /* alerts, list rows, rail items */
+  --radius-xl: 14px;    /* cards, popovers, tables */
+  --radius-2xl: 18px;   /* dialogs, command palette */
+  --radius-3xl: 20px;   /* composer */
+
+  --shadow-xs: 0 1px 1px rgb(42 63 46 / 0.05);
+  --shadow-sm: 0 1px 2px rgb(42 63 46 / 0.07), 0 1px 1px rgb(42 63 46 / 0.04);
+  --shadow-md: 0 8px 20px -8px rgb(42 63 46 / 0.20), 0 2px 4px -2px rgb(42 63 46 / 0.08);
+  --shadow-lg: 0 28px 56px -20px rgb(30 46 34 / 0.34), 0 4px 10px -4px rgb(30 46 34 / 0.10);
+  --shadow-lemon: inset 0 -1px 0 rgb(140 105 10 / 0.20), 0 1px 1px rgb(42 63 46 / 0.06);
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-optical-sizing: auto;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  h1, h2, h3, h4 { @apply text-foreground font-semibold tracking-[-0.01em]; text-wrap: balance; }
+  .tnum { font-variant-numeric: tabular-nums; }
+}

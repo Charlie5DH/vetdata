@@ -1,12 +1,8 @@
-import {
-  IconArrowsSort,
-  IconSortAscending,
-  IconSortDescending,
-} from "@tabler/icons-react";
 import { type Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ChevDIcon, ChevUdIcon } from "@/components/icons/vetdata-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,31 +32,31 @@ export function DataTableColumnHeader<TData, TValue>({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            size="sm"
-            className="-ml-3 h-8 data-[state=open]:bg-accent"
+            size="xs"
+            className="-ml-2.5 h-7 px-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground data-[state=open]:bg-accent data-[state=open]:text-foreground [&_svg]:text-stone-500"
           >
             <span>{title}</span>
             {column.getIsSorted() === "desc" ? (
-              <IconSortDescending className="ml-2 h-4 w-4" />
+              <ChevDIcon className="size-3.5" />
             ) : column.getIsSorted() === "asc" ? (
-              <IconSortAscending className="ml-2 h-4 w-4" />
+              <ChevDIcon className="size-3.5 rotate-180" />
             ) : (
-              <IconArrowsSort className="ml-2 h-4 w-4" />
+              <ChevUdIcon className="size-3.5" />
             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-            <IconSortAscending className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+            <ChevDIcon className="size-3.5 rotate-180 text-stone-500" />
             Asc
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-            <IconSortDescending className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+            <ChevDIcon className="size-3.5 text-stone-500" />
             Desc
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => column.clearSorting()}>
-            <IconArrowsSort className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+            <ChevUdIcon className="size-3.5 text-stone-500" />
             Original
           </DropdownMenuItem>
         </DropdownMenuContent>

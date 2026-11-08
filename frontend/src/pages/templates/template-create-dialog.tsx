@@ -31,7 +31,8 @@ import {
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { IconLoader2, IconPlus, IconSearch } from "@tabler/icons-react";
+import { PlusIcon, SearchIcon } from "@/components/icons/vetdata-icons";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -175,14 +176,17 @@ export function TemplateCreateDialog({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-125">
         <DialogHeader>
-          <DialogTitle>Criar Novo Modelo</DialogTitle>
+          <DialogTitle>Novo modelo</DialogTitle>
           <DialogDescription>
             Crie um novo modelo e selecione as medidas associadas.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
-          <div className="space-y-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4 py-2"
+        >
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Nome</Label>
             <Controller
               name="name"
@@ -192,11 +196,11 @@ export function TemplateCreateDialog({
               )}
             />
             {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
+              <p className="text-xs text-destructive">{errors.name.message}</p>
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="description">Descrição</Label>
             <Controller
               name="description"
@@ -211,35 +215,35 @@ export function TemplateCreateDialog({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-3">
-              <Label>Medidas Associadas</Label>
+              <Label>Medidas associadas</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsMeasureSheetOpen(true)}
               >
-                <IconPlus className="h-4 w-4" />
-                Criar medida
+                <PlusIcon />
+                Nova medida
               </Button>
             </div>
             <div className="relative">
-              <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <SearchIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar medidas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
+                className="pl-10"
               />
             </div>
-            <ScrollArea className="h-50 rounded-md border p-4">
+            <ScrollArea className="h-50 rounded-xl border border-border p-2">
               {isLoadingMeasures ? (
                 <div className="flex justify-center p-4">
-                  <IconLoader2 className="animate-spin h-4 w-4" />
+                  <Spinner className="text-muted-foreground" />
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="flex flex-col gap-1.5">
                   <Controller
                     name="measure_ids"
                     control={control}
@@ -251,7 +255,7 @@ export function TemplateCreateDialog({
                           return (
                             <div
                               key={measure.id}
-                              className="rounded-md border p-3"
+                              className="rounded-lg border border-border bg-card px-3 py-2.5"
                             >
                               <div className="flex items-start gap-3">
                                 <Checkbox
@@ -270,11 +274,11 @@ export function TemplateCreateDialog({
                                 <div className="flex-1">
                                   <Label
                                     htmlFor={measure.id}
-                                    className="cursor-pointer text-sm font-normal"
+                                    className="cursor-pointer text-sm font-semibold"
                                   >
                                     {measure.name}
                                     {measure.unit && (
-                                      <span className="ml-1 text-muted-foreground">
+                                      <span className="ml-1 font-normal text-muted-foreground">
                                         ({measure.unit})
                                       </span>
                                     )}
@@ -291,37 +295,57 @@ export function TemplateCreateDialog({
                               {selectedMeasureIds.includes(measure.id) &&
                                 measure.data_type === "number" && (
                                   <div className="mt-3 grid grid-cols-1 gap-3 pl-7 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                                    <div className="flex flex-col gap-1.5">
                                       <Label htmlFor={`${measure.id}-lower`}>
                                         Limite inferior do modelo
                                       </Label>
-                                      <Input
-                                        id={`${measure.id}-lower`}
-                                        type="number"
-                                        inputMode="decimal"
-                                        placeholder={getLimitPlaceholder(
-                                          measure.lower_limit,
+                                      <div className="relative">
+                                        <Input
+                                          id={`${measure.id}-lower`}
+                                          type="number"
+                                          inputMode="decimal"
+                                          placeholder={getLimitPlaceholder(
+                                            measure.lower_limit,
+                                          )}
+                                          {...register(
+                                            `thresholds.${measure.id}.lower_limit` as const,
+                                          )}
+                                          className={
+                                            measure.unit ? "pr-14" : undefined
+                                          }
+                                        />
+                                        {measure.unit && (
+                                          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+                                            {measure.unit}
+                                          </span>
                                         )}
-                                        {...register(
-                                          `thresholds.${measure.id}.lower_limit` as const,
-                                        )}
-                                      />
+                                      </div>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="flex flex-col gap-1.5">
                                       <Label htmlFor={`${measure.id}-upper`}>
                                         Limite superior do modelo
                                       </Label>
-                                      <Input
-                                        id={`${measure.id}-upper`}
-                                        type="number"
-                                        inputMode="decimal"
-                                        placeholder={getLimitPlaceholder(
-                                          measure.upper_limit,
+                                      <div className="relative">
+                                        <Input
+                                          id={`${measure.id}-upper`}
+                                          type="number"
+                                          inputMode="decimal"
+                                          placeholder={getLimitPlaceholder(
+                                            measure.upper_limit,
+                                          )}
+                                          {...register(
+                                            `thresholds.${measure.id}.upper_limit` as const,
+                                          )}
+                                          className={
+                                            measure.unit ? "pr-14" : undefined
+                                          }
+                                        />
+                                        {measure.unit && (
+                                          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+                                            {measure.unit}
+                                          </span>
                                         )}
-                                        {...register(
-                                          `thresholds.${measure.id}.upper_limit` as const,
-                                        )}
-                                      />
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -329,7 +353,7 @@ export function TemplateCreateDialog({
                           );
                         })}
                         {filteredMeasures?.length === 0 && (
-                          <div className="text-sm text-muted-foreground text-center py-4">
+                          <div className="py-4 text-center text-sm text-muted-foreground">
                             Nenhuma medida encontrada.
                           </div>
                         )}
@@ -349,11 +373,13 @@ export function TemplateCreateDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={createTemplate.isPending}>
-              {createTemplate.isPending && (
-                <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Criar Modelo
+            <Button
+              type="submit"
+              variant="cta"
+              disabled={createTemplate.isPending}
+            >
+              {createTemplate.isPending && <Spinner />}
+              Criar modelo
             </Button>
           </DialogFooter>
         </form>
@@ -368,7 +394,7 @@ export function TemplateCreateDialog({
             </SheetHeader>
             <div className="p-6 pt-0">
               <MeasureForm
-                submitLabel="Criar Medida"
+                submitLabel="Criar medida"
                 isSubmitting={createMeasure.isPending}
                 onCancel={() => setIsMeasureSheetOpen(false)}
                 onSubmit={async (payload) => {

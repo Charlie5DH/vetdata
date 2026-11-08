@@ -59,12 +59,12 @@ export function NavSecondary({
                 >
                   {item.external ? (
                     <a href={item.url} target="_blank" rel="noreferrer">
-                      <item.icon />
+                      <item.icon size={18} />
                       <span>{item.title}</span>
                     </a>
                   ) : (
                     <Link to={clinicPath(item.url)}>
-                      <item.icon />
+                      <item.icon size={18} />
                       <span>{item.title}</span>
                     </Link>
                   )}

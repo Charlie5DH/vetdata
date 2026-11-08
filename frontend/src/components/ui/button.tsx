@@ -5,34 +5,42 @@ import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 rounded-md border-[length:var(--app-border-width)] border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-[3px] aria-invalid:ring-[3px] [&_svg:not([class*='size-'])]:size-4 inline-flex cursor-pointer items-center justify-center whitespace-nowrap shadow-xs transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none group/button select-none",
+  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-clip-padding font-semibold outline-none transition-[background-color,border-color,box-shadow,color] duration-150 ease-out focus-visible:ring-[3px] focus-visible:ring-forest-900/12 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/12 disabled:pointer-events-none disabled:border-transparent disabled:bg-cream-300 disabled:text-stone-400 disabled:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        // Forest "brand" button
+        default:
+          "bg-primary text-primary-foreground hover:bg-forest-800 aria-expanded:bg-forest-800",
+        // VetData lemon call-to-action: at most one per view (docs/design-system/DESIGN.md)
+        cta: "border border-cta-border bg-cta text-cta-foreground shadow-lemon hover:bg-lemon-200 aria-expanded:bg-lemon-200",
         outline:
-          "border-border bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+          "border border-input bg-white font-medium text-foreground shadow-xs hover:bg-card aria-expanded:bg-card",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-cream-300 aria-expanded:bg-cream-300",
         ghost:
-          "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 aria-expanded:bg-muted aria-expanded:text-foreground",
+          "text-foreground hover:bg-accent aria-expanded:bg-accent",
         destructive:
-          "bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/20 text-destructive focus-visible:border-destructive/40 dark:hover:bg-destructive/30",
-        link: "bg-transparent text-primary shadow-none underline-offset-4 hover:underline",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        link: "rounded-none text-foreground underline-offset-4 hover:underline",
       },
       size: {
         default:
-          "h-[var(--app-control-height)] gap-[var(--app-control-gap)] px-[var(--app-control-px)] has-data-[icon=inline-end]:pr-[calc(var(--app-control-px)-0.25rem)] has-data-[icon=inline-start]:pl-[calc(var(--app-control-px)-0.25rem)]",
-        xs: "h-[var(--app-control-height-xs)] gap-[var(--app-control-gap-xs)] px-[var(--app-control-px-xs)] text-xs has-data-[icon=inline-end]:pr-[calc(var(--app-control-px-xs)-0.125rem)] has-data-[icon=inline-start]:pl-[calc(var(--app-control-px-xs)-0.125rem)] [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-[var(--app-control-height-sm)] gap-[var(--app-control-gap-sm)] px-[var(--app-control-px-sm)] has-data-[icon=inline-end]:pr-[calc(var(--app-control-px-sm)-0.125rem)] has-data-[icon=inline-start]:pl-[calc(var(--app-control-px-sm)-0.125rem)]",
-        lg: "h-[var(--app-control-height-lg)] gap-[calc(var(--app-control-gap)+0.125rem)] px-[calc(var(--app-control-px)+0.25rem)] has-data-[icon=inline-end]:pr-[var(--app-control-px)] has-data-[icon=inline-start]:pl-[var(--app-control-px)]",
-        icon: "size-[var(--app-control-icon-size)]",
-        "icon-xs":
-          "size-[var(--app-control-icon-size-xs)] [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-[var(--app-control-icon-size-sm)]",
-        "icon-lg": "size-[var(--app-control-icon-size-lg)]",
+          "h-9 px-4 text-sm has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        xs: "h-[26px] gap-1.5 px-[11px] text-xs has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-[30px] gap-1.5 px-[13px] text-[13px] has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-[42px] px-[22px] text-[15px] has-data-[icon=inline-end]:pr-[18px] has-data-[icon=inline-start]:pl-[18px]",
+        block: "h-10 w-full px-4 text-sm",
+        icon: "size-9",
+        "icon-xs": "size-[26px] [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-sm": "size-[30px]",
+        "icon-lg": "size-[42px]",
       },
     },
+    compoundVariants: [
+      // Links sit inline with text: no pill box, no padding
+      { variant: "link", class: "h-auto px-0 has-data-[icon=inline-end]:pr-0 has-data-[icon=inline-start]:pl-0" },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",

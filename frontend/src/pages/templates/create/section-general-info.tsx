@@ -28,14 +28,14 @@ export function SectionGeneralInfo({ form, step }: SectionGeneralInfoProps) {
       <CardHeader>
         <CardTitle>
           {step && <span className="mr-2 text-muted-foreground">{step}.</span>}
-          Informações Gerais
+          Informações gerais
         </CardTitle>
         <CardDescription>
           Nome e descrição do modelo de tratamento.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="name">Nome *</Label>
           <Controller
             name="name"
@@ -45,11 +45,11 @@ export function SectionGeneralInfo({ form, step }: SectionGeneralInfoProps) {
             )}
           />
           {errors.name && (
-            <p className="text-sm text-destructive">{errors.name.message}</p>
+            <p className="text-xs text-destructive">{errors.name.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="description">Descrição</Label>
           <Controller
             name="description"

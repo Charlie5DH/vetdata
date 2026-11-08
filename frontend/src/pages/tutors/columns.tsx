@@ -11,14 +11,22 @@ export const columns: ColumnDef<Tutor>[] = [
       <DataTableColumnHeader column={column} title="Nome" />
     ),
     cell: ({ row }) => {
+      const { first_name, last_name, email } = row.original;
+      const initials =
+        `${first_name?.[0] ?? ""}${last_name?.[0] ?? ""}`.toUpperCase();
       return (
-        <div className="flex flex-col">
-          <span className="font-medium">
-            {row.original.first_name} {row.original.last_name}
+        <div className="flex items-center gap-3">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-mint-300 text-xs font-semibold text-forest-900">
+            {initials || "—"}
           </span>
-          <span className="text-xs text-muted-foreground">
-            {row.original.email}
-          </span>
+          <div className="flex min-w-0 flex-col">
+            <span className="font-semibold text-foreground">
+              {first_name} {last_name}
+            </span>
+            <span className="text-[12.5px] text-muted-foreground">
+              {email || "—"}
+            </span>
+          </div>
         </div>
       );
     },
@@ -38,7 +46,7 @@ export const columns: ColumnDef<Tutor>[] = [
             </Badge>
           ))}
           {patients.length === 0 && (
-            <span className="text-muted-foreground text-xs">-</span>
+            <span className="text-stone-500">—</span>
           )}
         </div>
       );
@@ -48,13 +56,13 @@ export const columns: ColumnDef<Tutor>[] = [
   {
     accessorKey: "created_at",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Data de Cadastro" />
+      <DataTableColumnHeader column={column} title="Cadastrado em" />
     ),
     cell: ({ row }) => {
       return (
-        <div className="text-xs">
-          {new Date(row.getValue("created_at")).toLocaleDateString()}
-        </div>
+        <span className="tabular-nums text-muted-foreground">
+          {new Date(row.getValue("created_at")).toLocaleDateString("pt-BR")}
+        </span>
       );
     },
   },

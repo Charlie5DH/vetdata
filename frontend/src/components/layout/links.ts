@@ -1,29 +1,31 @@
+import type { ComponentType } from "react";
+
 import {
-  Activity,
-  BookMarked,
-  Building2,
-  FileText,
-  HeartPulse,
-  LayoutDashboard,
-  PanelsTopLeft,
-  PawPrint,
-  Ruler,
-  SlidersHorizontal,
-  Syringe,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+  ChartIcon,
+  ClinicIcon,
+  FileIcon,
+  HeartPulseIcon,
+  HomeIcon,
+  OwnerIcon,
+  PawIcon,
+  ScaleIcon,
+  SyringeIcon,
+  UsersIcon,
+  VialIcon,
+} from "@/components/icons/vetdata-icons";
+
+export type NavIcon = ComponentType<{ className?: string; size?: number }>;
 
 export interface AppNavItem {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: NavIcon;
 }
 
 export interface AppSecondaryNavItem {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: NavIcon;
   external?: boolean;
 }
 
@@ -43,70 +45,65 @@ export const appNavigation = {
   brand: {
     title: "VetData",
     subtitle: "Gestao veterinaria",
-    icon: HeartPulse,
+    icon: HeartPulseIcon,
   },
   navMain: [
     {
       title: "Painel",
       url: "/",
-      icon: LayoutDashboard,
+      icon: HomeIcon,
     },
     {
       title: "Visão Geral",
       url: "/visao-geral",
-      icon: PanelsTopLeft,
+      icon: ChartIcon,
     },
     {
       title: "Pacientes",
       url: "/patients",
-      icon: PawPrint,
+      icon: PawIcon,
     },
     {
       title: "Tutores",
       url: "/tutors",
-      icon: Users,
+      icon: OwnerIcon,
     },
     {
       title: "Modelos",
       url: "/templates",
-      icon: FileText,
+      icon: FileIcon,
     },
     {
       title: "Medidas",
       url: "/measures",
-      icon: Ruler,
+      icon: ScaleIcon,
     },
     {
       title: "Tratamentos",
       url: "/treatments",
-      icon: Activity,
+      icon: HeartPulseIcon,
     },
     {
       title: "Vacinas",
       url: "/vaccines",
-      icon: Syringe,
+      icon: SyringeIcon,
     },
     {
       title: "Catálogo de Vacinas",
       url: "/vaccines/catalog",
-      icon: BookMarked,
+      icon: VialIcon,
     },
   ] satisfies AppNavItem[],
   navSecondary: [
     {
       title: "Clínica",
       url: "/clinic",
-      icon: Building2,
+      icon: ClinicIcon,
     },
     {
       title: "Equipe",
       url: "/team",
-      icon: Users,
-    },
-    {
-      title: "Personalizacao",
-      url: "/customization",
-      icon: SlidersHorizontal,
+      icon: UsersIcon,
     },
   ] satisfies AppSecondaryNavItem[],
 };
@@ -146,15 +143,6 @@ const routeMatchers: RouteMatcher[] = [
       section: "Equipe",
       page: "Equipe",
       sectionUrl: "/team",
-    },
-  },
-  {
-    type: "startsWith",
-    value: "/customization",
-    meta: {
-      section: "Configuracoes",
-      page: "Personalizacao",
-      sectionUrl: "/customization",
     },
   },
   {

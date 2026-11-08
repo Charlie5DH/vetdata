@@ -1,13 +1,10 @@
 import { cn } from "@/lib/utils";
-import { IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
+import { CheckIcon } from "@/components/icons/vetdata-icons";
 
 export interface Step {
   id: string;
   label: string;
 }
-
-const TRACK_LEFT = 24;
-const TRACK_TOP = 24;
 
 interface StepTrackerProps {
   steps: Step[];
@@ -34,19 +31,11 @@ export function StepTracker({
 }: StepTrackerProps) {
   const activeIndex = steps.findIndex((s) => s.id === activeStep);
   const completedStepSet = new Set(completedSteps ?? []);
-  const progressHeight =
-    steps.length > 1 ? `${(activeIndex / (steps.length - 1)) * 100}%` : "0%";
 
   return (
     <nav className="relative">
-      <div
-        className="absolute bottom-6 w-px bg-border"
-        style={{ left: TRACK_LEFT, top: TRACK_TOP }}
-      />
-      <div
-        className="absolute w-px bg-primary transition-all duration-300"
-        style={{ left: TRACK_LEFT, top: TRACK_TOP, height: progressHeight }}
-      />
+      {/* 1px track joining the node centers (px-3 + half a 32px node = 28px). */}
+      <div className="absolute top-7 bottom-7 left-[27.5px] z-[1] w-px bg-input" />
 
       <div className="flex flex-col gap-1">
         {steps.map((step, index) => {
@@ -72,39 +61,30 @@ export function StepTracker({
                 scrollToSection(step.id);
               }}
               disabled={!interactive}
+              aria-current={isActive ? "step" : undefined}
               className={cn(
-                "relative grid min-h-12 grid-cols-[24px_1fr] items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors",
-                isActive && "bg-primary/10 text-foreground font-semibold",
-                !isActive &&
-                  interactive &&
-                  "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                "relative grid min-h-14 grid-cols-[32px_1fr] items-center gap-3 rounded-lg px-3 py-3 text-left text-[13.5px] outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                isActive || isCompleted
+                  ? "font-semibold text-foreground"
+                  : "text-stone-400",
+                interactive && "hover:bg-muted",
+                interactive && !isActive && !isCompleted && "hover:text-foreground",
                 !interactive && "cursor-default",
-                !interactive && !isActive && "text-muted-foreground",
               )}
             >
-              <span className="relative z-10 flex size-6 items-center justify-center rounded-full bg-background">
-                {isCompleted ? (
-                  <IconCircleCheckFilled className="size-5 text-primary" />
-                ) : (
-                  <IconCircle
-                    className={cn(
-                      "size-5 transition-colors",
-                      isActive
-                        ? "text-primary fill-primary/20"
-                        : "text-muted-foreground/50",
-                    )}
-                    style={isActive ? { strokeWidth: 2 } : undefined}
-                  />
-                )}
-              </span>
               <span
                 className={cn(
-                  "transition-colors",
-                  isActive && "text-primary font-semibold",
+                  "relative z-10 flex size-8 items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+                  isActive
+                    ? "bg-primary text-cta"
+                    : isCompleted
+                      ? "bg-muted text-foreground"
+                      : "bg-muted text-muted-foreground",
                 )}
               >
-                {step.label}
+                {isCompleted && !isActive ? <CheckIcon size={14} /> : index + 1}
               </span>
+              <span>{step.label}</span>
             </button>
           );
         })}

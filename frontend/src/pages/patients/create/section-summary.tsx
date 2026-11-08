@@ -7,7 +7,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { formatAgeShort, formatWeight } from "@/components/patients/patient-format";
 import { useOwners } from "@/api/owners";
 import { useTemplates } from "@/api/templates";
 import type { PatientCreateFormValues } from "./schema";
@@ -26,7 +26,7 @@ export function SectionSummary({ form, step }: SectionSummaryProps) {
   const selectedTemplate = templates?.find(
     (t) => String(t.id) === values.template_id && values.template_id !== "none",
   );
-  let ownerSummary = (
+  let ownerSummary: React.ReactNode = (
     <p className="text-sm text-muted-foreground">Nenhum tutor selecionado</p>
   );
 
@@ -53,80 +53,76 @@ export function SectionSummary({ form, step }: SectionSummaryProps) {
     <Card id="resumo">
       <CardHeader>
         <CardTitle>
-          {step && <span className="mr-2 text-muted-foreground">{step}.</span>}
+          {step && (
+            <span className="mr-2 font-medium text-muted-foreground tabular-nums">
+              {step}.
+            </span>
+          )}
           Resumo
         </CardTitle>
         <CardDescription>
           Confirme as informações antes de criar o paciente.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Owner Summary */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-            Tutor
-          </h4>
-          {ownerSummary}
-        </div>
+      <CardContent className="flex flex-col divide-y divide-border">
+        <SummaryGroup title="Tutor">{ownerSummary}</SummaryGroup>
 
-        <Separator />
+        <SummaryGroup title="Paciente">
+          <SummaryRow label="Nome">{values.name || "—"}</SummaryRow>
+          <SummaryRow label="Espécie">{values.species || "—"}</SummaryRow>
+          <SummaryRow label="Raça">{values.breed || "—"}</SummaryRow>
+          <SummaryRow label="Peso">
+            {formatWeight(values.weight_kg) ? (
+              <span className="tabular-nums">
+                {formatWeight(values.weight_kg)} kg
+              </span>
+            ) : (
+              "—"
+            )}
+          </SummaryRow>
+          <SummaryRow label="Idade">
+            {formatAgeShort(values.age_years, values.age_months)}
+          </SummaryRow>
+        </SummaryGroup>
 
-        {/* Patient Summary */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-            Paciente
-          </h4>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
-            <div>
-              <span className="text-muted-foreground">Nome:</span>{" "}
-              {values.name || "—"}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Espécie:</span>{" "}
-              {values.species || "—"}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Raça:</span>{" "}
-              {values.breed || "—"}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Peso:</span>{" "}
-              {values.weight_kg ? `${values.weight_kg} kg` : "—"}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Idade:</span>{" "}
-              {values.age_years ? `${values.age_years}a` : ""}
-              {values.age_months ? ` ${values.age_months}m` : ""}
-              {!values.age_years && !values.age_months ? "—" : ""}
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Treatment Summary */}
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-            Tratamento
-          </h4>
-          <div className="space-y-1 text-sm">
-            <div>
-              <span className="text-muted-foreground">Motivo:</span>{" "}
-              {values.motive || "—"}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Notas:</span>{" "}
-              {values.notes || "—"}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Modelo:</span>{" "}
-              {selectedTemplate ? selectedTemplate.name : "Nenhum"}
-            </div>
-          </div>
-        </div>
-
-        <Separator />
+        <SummaryGroup title="Tratamento">
+          <SummaryRow label="Motivo">{values.motive || "—"}</SummaryRow>
+          <SummaryRow label="Notas">{values.notes || "—"}</SummaryRow>
+          <SummaryRow label="Modelo">
+            {selectedTemplate ? selectedTemplate.name : "Nenhum"}
+          </SummaryRow>
+        </SummaryGroup>
       </CardContent>
     </Card>
+  );
+}
+
+function SummaryGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 py-3.5 first:pt-0 last:pb-0">
+      <h4 className="text-[13px] font-semibold text-foreground">{title}</h4>
+      {children}
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[96px_1fr] gap-3 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="min-w-0 break-words text-foreground">{children}</span>
+    </div>
   );
 }

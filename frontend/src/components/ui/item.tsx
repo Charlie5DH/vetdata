@@ -11,7 +11,7 @@ function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
       role="list"
       data-slot="item-group"
       className={cn(
-        "gap-4 has-[[data-size=sm]]:gap-2.5 has-[[data-size=xs]]:gap-2 group/item-group flex w-full flex-col",
+        "gap-2 has-[[data-size=sm]]:gap-2 has-[[data-size=xs]]:gap-1.5 group/item-group flex w-full flex-col",
         className
       )}
       {...props}
@@ -34,18 +34,18 @@ function ItemSeparator({
 }
 
 const itemVariants = cva(
-  "[a]:hover:bg-muted rounded-2xl border text-sm w-full group/item focus-visible:border-ring focus-visible:ring-ring/50 flex items-center flex-wrap outline-none transition-colors duration-100 focus-visible:ring-[3px] [a]:transition-colors",
+  "[a]:hover:bg-muted rounded-lg border text-sm w-full group/item focus-visible:border-forest-600 focus-visible:ring-forest-900/10 flex items-center flex-wrap outline-none transition-colors duration-150 ease-out focus-visible:ring-[3px] [a]:transition-colors",
   {
     variants: {
       variant: {
-        default: "border-transparent",
-        outline: "border-border",
-        muted: "bg-muted/50 border-transparent",
+        default: "bg-card border-border",
+        outline: "bg-card border-border",
+        muted: "bg-muted border-transparent",
       },
       size: {
-        default: "gap-3.5 px-4 py-3.5",
-        sm: "gap-3.5 px-3.5 py-3",
-        xs: "gap-2.5 px-3 py-2.5 [[data-slot=dropdown-menu-content]_&]:p-0",
+        default: "gap-3 px-3.5 py-3",
+        sm: "gap-3 px-3 py-2.5",
+        xs: "gap-2.5 px-2.5 py-2 [[data-slot=dropdown-menu-content]_&]:p-0",
       },
     },
     defaultVariants: {
@@ -81,8 +81,8 @@ const itemMediaVariants = cva(
     variants: {
       variant: {
         default: "bg-transparent",
-        icon: "[&_svg:not([class*='size-'])]:size-4",
-        image: "size-10 overflow-hidden rounded-lg group-data-[size=sm]/item:size-8 group-data-[size=xs]/item:size-6 group-data-[size=xs]/item:rounded-md [&_img]:size-full [&_img]:object-cover",
+        icon: "size-8 rounded-full bg-muted text-primary group-data-[size=xs]/item:size-6 [&_svg:not([class*='size-'])]:size-4",
+        image: "size-9 overflow-hidden rounded-md group-data-[size=sm]/item:size-8 group-data-[size=xs]/item:size-6 group-data-[size=xs]/item:rounded-sm [&_img]:size-full [&_img]:object-cover",
       },
     },
     defaultVariants: {
@@ -111,7 +111,7 @@ function ItemContent({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="item-content"
       className={cn(
-        "gap-1 group-data-[size=xs]/item:gap-0.5 flex flex-1 flex-col [&+[data-slot=item-content]]:flex-none",
+        "gap-0.5 flex flex-1 flex-col [&+[data-slot=item-content]]:flex-none",
         className
       )}
       {...props}
@@ -124,7 +124,7 @@ function ItemTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="item-title"
       className={cn(
-        "gap-2 text-sm leading-snug font-medium underline-offset-4 line-clamp-1 flex w-fit items-center",
+        "gap-2 text-sm leading-snug font-semibold text-foreground underline-offset-4 line-clamp-1 flex w-fit items-center",
         className
       )}
       {...props}
@@ -137,7 +137,7 @@ function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="item-description"
       className={cn(
-        "text-muted-foreground text-left text-sm [&>a:hover]:text-primary line-clamp-2 font-normal [&>a]:underline [&>a]:underline-offset-4",
+        "text-muted-foreground text-left text-[12.5px] leading-snug line-clamp-2 font-normal [&>a]:text-foreground [&>a]:underline [&>a]:underline-offset-4",
         className
       )}
       {...props}

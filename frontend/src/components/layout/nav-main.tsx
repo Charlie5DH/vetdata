@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronRight, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import { ChevRIcon } from "@/components/icons/vetdata-icons";
+import type { NavIcon } from "@/components/layout/links";
 
 import {
   Collapsible,
@@ -28,7 +30,7 @@ export function NavMain({
   items: {
     title: string;
     url: string;
-    icon: LucideIcon;
+    icon: NavIcon;
     isActive?: boolean;
     items?: {
       title: string;
@@ -45,7 +47,7 @@ export function NavMain({
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={item.title}>
                 <Link to={item.url}>
-                  <item.icon />
+                  <item.icon size={18} />
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
@@ -53,7 +55,7 @@ export function NavMain({
                 <>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuAction className="data-[state=open]:rotate-90">
-                      <ChevronRight />
+                      <ChevRIcon />
                       <span className="sr-only">Alternar</span>
                     </SidebarMenuAction>
                   </CollapsibleTrigger>

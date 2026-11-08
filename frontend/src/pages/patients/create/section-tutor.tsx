@@ -1,6 +1,10 @@
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { IconArrowRight, IconPlus, IconUserSearch } from "@tabler/icons-react";
+import {
+  ChevRIcon,
+  OwnerIcon,
+  PlusIcon,
+} from "@/components/icons/vetdata-icons";
 
 import { useOwners } from "@/api/owners";
 import { OwnerSelectionTable } from "@/components/patients/owner-selection-table";
@@ -16,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+import { FieldError } from "./field-error";
 import type { PatientCreateFormValues } from "./schema";
 
 interface StageCardProps {
@@ -30,7 +35,11 @@ function StageCard({ step, title, description, children }: StageCardProps) {
     <Card>
       <CardHeader>
         <CardTitle>
-          {step && <span className="mr-2 text-muted-foreground">{step}.</span>}
+          {step && (
+            <span className="mr-2 font-medium text-muted-foreground tabular-nums">
+              {step}.
+            </span>
+          )}
           {title}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -62,30 +71,30 @@ export function SectionTutorChoice({
       title="Tutor"
       description="Escolha se você vai vincular um tutor já cadastrado ou registrar um novo tutor antes de criar o paciente."
     >
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <button
           type="button"
           onClick={() => onChooseMode("existing")}
           className={cn(
-            "flex flex-col items-start gap-4 rounded-md border p-5 text-left transition-colors hover:border-primary/50 hover:bg-primary/5",
-            ownerMode === "existing" && "border-primary bg-primary/5",
+            "flex flex-col items-start gap-3 rounded-lg border border-input p-4 text-left transition-colors duration-150 hover:border-forest-500 hover:bg-muted",
+            ownerMode === "existing" && "border-primary bg-muted",
           )}
         >
           <div className="flex items-center gap-3">
-            <div className="rounded-md bg-primary/10 p-2 text-primary">
-              <IconUserSearch className="size-5" />
-            </div>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-foreground">
+              <OwnerIcon size={18} />
+            </span>
             <div>
-              <div className="font-medium">Selecionar tutor existente</div>
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm font-semibold">Selecionar tutor existente</div>
+              <p className="text-[13px] text-muted-foreground">
                 Use um tutor já cadastrado e siga direto para os dados do pet.
               </p>
             </div>
           </div>
-          <Badge variant="secondary">Mais rapido</Badge>
-          <div className="mt-auto flex items-center gap-2 text-sm font-medium text-primary">
+          <Badge variant="secondary">Mais rápido</Badge>
+          <div className="mt-auto flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
             Continuar
-            <IconArrowRight className="size-4" />
+            <ChevRIcon size={14} />
           </div>
         </button>
 
@@ -93,25 +102,25 @@ export function SectionTutorChoice({
           type="button"
           onClick={() => onChooseMode("new")}
           className={cn(
-            "flex flex-col items-start gap-4 rounded-md border p-5 text-left transition-colors hover:border-primary/50 hover:bg-primary/5",
-            ownerMode === "new" && "border-primary bg-primary/5",
+            "flex flex-col items-start gap-3 rounded-lg border border-input p-4 text-left transition-colors duration-150 hover:border-forest-500 hover:bg-muted",
+            ownerMode === "new" && "border-primary bg-muted",
           )}
         >
           <div className="flex items-center gap-3">
-            <div className="rounded-md bg-primary/10 p-2 text-primary">
-              <IconPlus className="size-5" />
-            </div>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-foreground">
+              <PlusIcon size={18} />
+            </span>
             <div>
-              <div className="font-medium">Cadastrar novo tutor</div>
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm font-semibold">Cadastrar novo tutor</div>
+              <p className="text-[13px] text-muted-foreground">
                 Crie o tutor agora e vincule o paciente no mesmo fluxo.
               </p>
             </div>
           </div>
           <Badge variant="outline">Cadastro completo</Badge>
-          <div className="mt-auto flex items-center gap-2 text-sm font-medium text-primary">
+          <div className="mt-auto flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
             Continuar
-            <IconArrowRight className="size-4" />
+            <ChevRIcon size={14} />
           </div>
         </button>
       </div>
@@ -132,10 +141,10 @@ export function SectionTutorExisting({ form, step }: TutorSectionBaseProps) {
       title="Selecionar tutor"
       description="Pesquise um tutor existente e confirme a vinculação com o novo paciente."
     >
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
           <Label htmlFor="owner_id">Tutor *</Label>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Selecione um tutor da lista para continuar.
           </p>
         </div>
@@ -152,9 +161,7 @@ export function SectionTutorExisting({ form, step }: TutorSectionBaseProps) {
           )}
         />
 
-        {errors.owner_id && (
-          <p className="text-sm text-destructive">{errors.owner_id.message}</p>
-        )}
+        <FieldError message={errors.owner_id?.message} />
       </div>
     </StageCard>
   );
@@ -172,36 +179,28 @@ export function SectionTutorNew({ form, step }: TutorSectionBaseProps) {
       title="Novo tutor"
       description="Preencha os dados do tutor responsável antes de seguir para o cadastro do paciente."
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="new_owner_first_name">Nome *</Label>
           <Input
             id="new_owner_first_name"
             {...register("new_owner_first_name")}
-            placeholder="Joao"
+            placeholder="João"
           />
-          {errors.new_owner_first_name && (
-            <p className="text-sm text-destructive">
-              {errors.new_owner_first_name.message}
-            </p>
-          )}
+          <FieldError message={errors.new_owner_first_name?.message} />
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="new_owner_last_name">Sobrenome *</Label>
           <Input
             id="new_owner_last_name"
             {...register("new_owner_last_name")}
             placeholder="Silva"
           />
-          {errors.new_owner_last_name && (
-            <p className="text-sm text-destructive">
-              {errors.new_owner_last_name.message}
-            </p>
-          )}
+          <FieldError message={errors.new_owner_last_name?.message} />
         </div>
 
-        <div className="space-y-2 md:col-span-2">
+        <div className="flex flex-col gap-1.5 md:col-span-2">
           <Label htmlFor="new_owner_email">Email *</Label>
           <Input
             id="new_owner_email"
@@ -209,14 +208,10 @@ export function SectionTutorNew({ form, step }: TutorSectionBaseProps) {
             {...register("new_owner_email")}
             placeholder="joao.silva@exemplo.com"
           />
-          {errors.new_owner_email && (
-            <p className="text-sm text-destructive">
-              {errors.new_owner_email.message}
-            </p>
-          )}
+          <FieldError message={errors.new_owner_email?.message} />
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="new_owner_phone">Telefone</Label>
           <Input
             id="new_owner_phone"
@@ -224,25 +219,17 @@ export function SectionTutorNew({ form, step }: TutorSectionBaseProps) {
             {...register("new_owner_phone")}
             placeholder="(00) 00000-0000"
           />
-          {errors.new_owner_phone && (
-            <p className="text-sm text-destructive">
-              {errors.new_owner_phone.message}
-            </p>
-          )}
+          <FieldError message={errors.new_owner_phone?.message} />
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="new_owner_cpf">CPF *</Label>
           <Input
             id="new_owner_cpf"
             {...register("new_owner_cpf")}
             placeholder="000.000.000-00"
           />
-          {errors.new_owner_cpf && (
-            <p className="text-sm text-destructive">
-              {errors.new_owner_cpf.message}
-            </p>
-          )}
+          <FieldError message={errors.new_owner_cpf?.message} />
         </div>
       </div>
     </StageCard>

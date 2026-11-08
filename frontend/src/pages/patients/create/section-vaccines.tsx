@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { PlusIcon, TrashIcon } from "@/components/icons/vetdata-icons";
 
 import { useVaccineCatalog } from "@/api/vaccines";
 import { speciesMatches } from "@/lib/species";
@@ -50,7 +50,11 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
     <Card id="vacinas">
       <CardHeader>
         <CardTitle>
-          {step && <span className="mr-2 text-muted-foreground">{step}.</span>}
+          {step && (
+            <span className="mr-2 font-medium text-muted-foreground tabular-nums">
+              {step}.
+            </span>
+          )}
           Vacinas
         </CardTitle>
         <CardDescription>
@@ -58,8 +62,8 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
           adicionar mais depois.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="vaccine_notes">Histórico de vacinas (texto livre)</Label>
           <Textarea
             id="vaccine_notes"
@@ -68,8 +72,8 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
           />
         </div>
 
-        <div className="space-y-2 border-t pt-4">
-          <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2.5 border-t border-border pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Label>Vacinas já aplicadas (selecionar do catálogo)</Label>
             <Button
               type="button"
@@ -83,7 +87,7 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
               }
               disabled={!filteredCatalog.length}
             >
-              <IconPlus className="mr-1 h-4 w-4" />
+              <PlusIcon />
               Adicionar vacina
             </Button>
           </div>
@@ -94,13 +98,13 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
               catálogo {species ? `de ${species}` : ""}.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-2">
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid gap-2 rounded-md border bg-card/50 p-3 sm:grid-cols-[1fr_180px_auto] sm:items-end"
+                  className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_180px_auto] sm:items-end"
                 >
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-1.5">
                     <Label htmlFor={`initial_vaccinations.${index}.vaccine_id`}>
                       Vacina
                     </Label>
@@ -125,7 +129,7 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
                       )}
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-1.5">
                     <Label htmlFor={`initial_vaccinations.${index}.applied_at`}>
                       Aplicada em
                     </Label>
@@ -143,8 +147,9 @@ export function SectionVaccines({ form, step }: SectionVaccinesProps) {
                     size="icon"
                     onClick={() => remove(index)}
                     aria-label="Remover vacina"
+                    className="text-destructive hover:bg-destructive-soft hover:text-destructive"
                   >
-                    <IconTrash className="h-4 w-4 text-destructive" />
+                    <TrashIcon />
                   </Button>
                 </div>
               ))}

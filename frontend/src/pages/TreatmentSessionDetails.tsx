@@ -33,25 +33,19 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Spinner } from "@/components/ui/spinner";
 import {
-  IconPlus,
-  IconCheck,
-  IconX,
-  IconLoader2,
-  IconChevronDown,
-  IconChevronUp,
-  IconTrash,
-  IconInfoCircle,
-  IconRulerMeasure,
-  IconTimeline,
-  IconTable,
-  IconChartLine,
-  IconAlertTriangle,
-} from "@tabler/icons-react";
+  AlertIcon,
+  ChevDIcon,
+  PlusIcon,
+  RecordIcon,
+  TrashIcon,
+} from "@/components/icons/vetdata-icons";
 import { toast } from "sonner";
 import type { Measure, TreatmentLog } from "@/types";
 import { TreatmentChart } from "@/components/TreatmentChart";
-import { themeAccentClasses } from "@/lib/theme-styles";
+import { cn } from "@/lib/utils";
 
 type Thresholds = {
   lower: number | null;
@@ -107,6 +101,55 @@ function getOptions(measure: Measure) {
   return [];
 }
 
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Numeric readings get a decimal comma; other values are shown as typed. "—" when missing. */
+function formatMeasureValue(
+  value: string | number | null | undefined,
+  measure?: Measure,
+) {
+  if (value === null || value === undefined || value === "") return "—";
+  const number = Number(value);
+  if (measure?.data_type === "number" && !Number.isNaN(number)) {
+    return number.toLocaleString("pt-BR", { maximumFractionDigits: 3 });
+  }
+  return String(value);
+}
+
+function CollapseButton({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      aria-label={collapsed ? "Expandir" : "Recolher"}
+      className="text-muted-foreground"
+    >
+      <ChevDIcon
+        className={cn(
+          "transition-transform duration-150",
+          !collapsed && "rotate-180",
+        )}
+      />
+    </Button>
+  );
+}
+
 function getSessionStatusLabel(status?: string | null) {
   switch (status) {
     case "active":
@@ -126,49 +169,54 @@ function SessionAlertsCard({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-destructive/10 p-2 text-destructive">
-            <IconAlertTriangle className="h-5 w-5" />
-          </div>
-          <div>
-            <CardTitle>Alertas da Sessão</CardTitle>
-            <CardDescription>
-              {alerts.length}{" "}
-              {alerts.length === 1 ? "alerta ativo" : "alertas ativos"}
-            </CardDescription>
-          </div>
-        </div>
+        <CardTitle>Alertas da sessão</CardTitle>
+        <CardDescription>
+          {alerts.length}{" "}
+          {alerts.length === 1 ? "alerta ativo" : "alertas ativos"}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {alerts.length > 0 ? (
-          <div className="space-y-3">
-            {alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className="rounded-lg border border-destructive/30 bg-destructive/5 p-4"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-destructive">
-                      {alert.measure?.name || "Medida"}
-                    </p>
-                    <p className="text-sm text-foreground/90">
-                      {alert.message}
-                    </p>
+          <div className="flex flex-col gap-2">
+            {alerts.map((alert) => {
+              const unit = alert.measure?.unit ? ` ${alert.measure.unit}` : "";
+              return (
+                <div
+                  key={alert.id}
+                  className="grid grid-cols-[16px_1fr] gap-x-3 gap-y-1 rounded-lg border border-warning/25 bg-warning-soft px-4 py-3.5 text-[13.5px]"
+                >
+                  <AlertIcon size={16} className="mt-0.5 text-warning" />
+                  <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+                    <div className="flex flex-col gap-0.5">
+                      <p className="font-semibold text-foreground">
+                        {alert.measure?.name || "Medida"}
+                      </p>
+                      <p className="text-stone-700">{alert.message}</p>
+                    </div>
+                    <Badge variant="warning">
+                      {alert.threshold_type === "lower"
+                        ? "Abaixo do limite"
+                        : "Acima do limite"}
+                    </Badge>
                   </div>
-                  <Badge variant="destructive">
-                    {alert.threshold_type === "lower"
-                      ? "Abaixo do limite"
-                      : "Acima do limite"}
-                  </Badge>
+                  <div className="col-start-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
+                    <span>
+                      Limite:{" "}
+                      {formatMeasureValue(alert.threshold_value, alert.measure ?? undefined)}
+                      {unit}
+                    </span>
+                    <span>
+                      Valor:{" "}
+                      <span className="font-semibold text-foreground">
+                        {formatMeasureValue(alert.triggered_value, alert.measure ?? undefined)}
+                        {unit}
+                      </span>
+                    </span>
+                    <span>{formatDateTime(alert.created_at)}</span>
+                  </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span>Limite: {alert.threshold_value}</span>
-                  <span>Valor: {alert.triggered_value}</span>
-                  <span>{new Date(alert.created_at).toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-sm text-muted-foreground">
@@ -188,16 +236,16 @@ function MeasuresGrid({
   getThresholds: (measureId: string) => Thresholds;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {measures.map((measure) => {
         const thresholds = getThresholds(measure.id);
 
         return (
           <div
             key={measure.id}
-            className="flex flex-col space-y-1 rounded-lg border border-border bg-muted/20 p-4 transition-colors hover:bg-muted/40"
+            className="flex flex-col gap-0.5 rounded-lg bg-muted px-4 py-3"
           >
-            <span className="text-sm font-medium">{measure.name}</span>
+            <span className="text-sm font-semibold">{measure.name}</span>
             {measure.unit && (
               <span className="text-xs text-muted-foreground">
                 Unidade: {measure.unit}
@@ -209,13 +257,15 @@ function MeasuresGrid({
               </span>
             )}
             {thresholds.lower !== null && (
-              <span className="text-xs text-muted-foreground">
-                Limite inferior: {thresholds.lower}
+              <span className="text-xs text-muted-foreground tabular-nums">
+                Limite inferior: {formatMeasureValue(thresholds.lower, measure)}
+                {measure.unit ? ` ${measure.unit}` : ""}
               </span>
             )}
             {thresholds.upper !== null && (
-              <span className="text-xs text-muted-foreground">
-                Limite superior: {thresholds.upper}
+              <span className="text-xs text-muted-foreground tabular-nums">
+                Limite superior: {formatMeasureValue(thresholds.upper, measure)}
+                {measure.unit ? ` ${measure.unit}` : ""}
               </span>
             )}
           </div>
@@ -243,38 +293,33 @@ function AddLogForm({
   onCancel,
 }: AddLogFormProps) {
   return (
-    <div className="space-y-4 rounded-lg border border-dashed border-primary bg-primary/5 p-4">
+    <div className="flex flex-col gap-4 rounded-lg border border-input bg-muted p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Novo Registro</h3>
+        <h3 className="text-[15px] font-semibold">Novo registro</h3>
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="default"
-            onClick={onSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <IconCheck className="mr-2 h-4 w-4" />
-            )}
-            Salvar
-          </Button>
           <Button
             size="sm"
             variant="ghost"
             onClick={onCancel}
             disabled={isSaving}
           >
-            <IconX className="mr-2 h-4 w-4" />
             Cancelar
+          </Button>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={onSave}
+            disabled={isSaving}
+          >
+            {isSaving && <Spinner />}
+            Salvar
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="new-log-date" className="text-sm font-medium">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="new-log-date" className="text-[13px] font-semibold">
             Data/Hora
           </label>
           <Input
@@ -284,8 +329,8 @@ function AddLogForm({
             onChange={(e) => onDateChange(e.target.value)}
           />
         </div>
-        <div className="space-y-2">
-          <label htmlFor="new-log-notes" className="text-sm font-medium">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="new-log-notes" className="text-[13px] font-semibold">
             Notas
           </label>
           <Input
@@ -297,30 +342,27 @@ function AddLogForm({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Medidas</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-col gap-2">
+        <p className="text-[13px] font-semibold">Medidas</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {measures.map((measure) => {
             const options = getOptions(measure);
             const inputId = `measure-${measure.id}`;
 
             return (
-              <div key={measure.id} className="space-y-1">
+              <div key={measure.id} className="flex flex-col gap-1.5">
                 <label
                   htmlFor={inputId}
-                  className="text-xs text-muted-foreground"
+                  className="text-[13px] text-muted-foreground"
                 >
                   {measure.name}
-                  {measure.unit && (
-                    <span className="ml-1">({measure.unit})</span>
-                  )}
                 </label>
                 {options.length > 0 ? (
                   <Select
                     value={newLogValues[measure.id] || ""}
                     onValueChange={(value) => onValueChange(measure.id, value)}
                   >
-                    <SelectTrigger id={inputId} className="w-full">
+                    <SelectTrigger id={inputId} className="w-full bg-card">
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -332,13 +374,27 @@ function AddLogForm({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Input
-                    id={inputId}
-                    value={newLogValues[measure.id] || ""}
-                    onChange={(e) => onValueChange(measure.id, e.target.value)}
-                    type={measure.data_type === "number" ? "number" : "text"}
-                    placeholder={`Valor de ${measure.name}...`}
-                  />
+                  <div className="relative">
+                    <Input
+                      id={inputId}
+                      value={newLogValues[measure.id] || ""}
+                      onChange={(e) =>
+                        onValueChange(measure.id, e.target.value)
+                      }
+                      type={measure.data_type === "number" ? "number" : "text"}
+                      placeholder={`Valor de ${measure.name}...`}
+                      className={cn(
+                        "bg-card",
+                        measure.unit && "pr-14",
+                        measure.data_type === "number" && "tabular-nums",
+                      )}
+                    />
+                    {measure.unit ? (
+                      <span className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[13px] text-muted-foreground">
+                        {measure.unit}
+                      </span>
+                    ) : null}
+                  </div>
                 )}
               </div>
             );
@@ -365,73 +421,77 @@ function LogListRow({
   );
 
   return (
-    <div className="overflow-hidden rounded-lg border transition-colors hover:border-primary/50">
+    <div className="overflow-hidden rounded-lg border border-border">
       <div className="flex items-stretch justify-between">
         <button
           type="button"
-          className="flex flex-1 items-center justify-between p-4 text-left hover:bg-muted/50"
+          className="flex flex-1 items-center justify-between px-4 py-3 text-left transition-colors duration-150 hover:bg-muted"
           onClick={() => onToggle(log.id)}
           aria-expanded={isExpanded}
         >
-          <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-1">
+          <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="flex flex-col gap-0.5">
               <span className="text-xs text-muted-foreground">Data/Hora</span>
-              <div className="font-medium">
-                {new Date(log.logged_at).toLocaleString()}
+              <div className="text-sm font-semibold tabular-nums">
+                {formatDateTime(log.logged_at)}
               </div>
             </div>
-            <div className="space-y-1">
+            <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-xs text-muted-foreground">Notas</span>
-              <div className="truncate text-sm">{log.notes || "-"}</div>
+              <div className="truncate text-sm text-stone-700">
+                {log.notes || "—"}
+              </div>
             </div>
           </div>
-          <span className="ml-4">
-            {isExpanded ? (
-              <IconChevronUp className="h-4 w-4" />
-            ) : (
-              <IconChevronDown className="h-4 w-4" />
+          <ChevDIcon
+            className={cn(
+              "ml-4 shrink-0 text-muted-foreground transition-transform duration-150",
+              isExpanded && "rotate-180",
             )}
-          </span>
+          />
         </button>
         <div className="flex items-center px-2">
           <Button
             variant="ghost"
-            size="icon"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            size="icon-sm"
+            className="text-destructive hover:bg-destructive-soft hover:text-destructive"
             onClick={(event) => onDelete(log.id, event)}
             disabled={isDeleting}
             aria-label="Excluir registro"
           >
-            <IconTrash className="h-4 w-4" />
+            <TrashIcon />
           </Button>
         </div>
       </div>
 
       {isExpanded && (
-        <div className="border-t bg-muted/20 p-4">
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold">Medidas Registradas</h4>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {measures.map((measure) => {
-                const value = valueMap.get(measure.id);
+        <div className="border-t border-border px-4 py-3">
+          <h4 className="mb-2 text-[13px] font-semibold">
+            Medidas registradas
+          </h4>
+          <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
+            {measures.map((measure) => {
+              const value = valueMap.get(measure.id);
+              const hasValue = value !== null && value !== undefined && value !== "";
 
-                return (
-                  <div
-                    key={measure.id}
-                    className="flex flex-col space-y-1 rounded-md border bg-background p-3"
-                  >
-                    <span className="text-xs text-muted-foreground">
-                      {measure.name}
-                      {measure.unit && (
-                        <span className="ml-1">({measure.unit})</span>
-                      )}
-                    </span>
-                    <span className="font-medium">{value ?? "-"}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+              return (
+                <div
+                  key={measure.id}
+                  className="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm"
+                >
+                  <dt className="text-muted-foreground">{measure.name}</dt>
+                  <dd className="text-right font-semibold tabular-nums">
+                    {formatMeasureValue(value, measure)}
+                    {hasValue && measure.unit ? (
+                      <span className="ml-1 font-medium text-muted-foreground">
+                        {measure.unit}
+                      </span>
+                    ) : null}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
         </div>
       )}
     </div>
@@ -447,38 +507,42 @@ function LogTableRow({ log, measures, isDeleting, onDelete }: LogRowProps) {
   );
 
   return (
-    <TableRow className="text-xs">
-      <TableCell className="sticky left-0 z-10 min-w-32 bg-card text-xs font-medium shadow-[1px_0_0_0_var(--border)] md:min-w-44">
-        <div className="leading-tight">
-          {new Date(log.logged_at).toLocaleString()}
-        </div>
+    <TableRow>
+      <TableCell className="sticky left-0 z-10 min-w-32 bg-card font-semibold text-foreground tabular-nums shadow-[1px_0_0_0_var(--border)] md:min-w-44">
+        {formatDateTime(log.logged_at)}
       </TableCell>
       {measures.map((measure) => {
         const value = valueMap.get(measure.id);
+        const isNumber = measure.data_type === "number";
 
         return (
           <TableCell
             key={measure.id}
-            className="min-w-24 py-2 text-xs md:min-w-28"
+            className={cn(
+              "min-w-24 py-2 md:min-w-28",
+              isNumber && "text-right tabular-nums",
+            )}
           >
-            <span className="block truncate">{value ?? "-"}</span>
+            <span className="block truncate">
+              {formatMeasureValue(value, measure)}
+            </span>
           </TableCell>
         );
       })}
-      <TableCell className="min-w-32 max-w-40 py-2 text-xs text-muted-foreground md:min-w-40 md:max-w-56">
-        <span className="block truncate">{log.notes || "-"}</span>
+      <TableCell className="max-w-40 min-w-32 py-2 text-muted-foreground md:max-w-56 md:min-w-40">
+        <span className="block truncate">{log.notes || "—"}</span>
       </TableCell>
-      <TableCell className="sticky right-0 z-10 w-14 bg-card py-1 text-right shadow-[-1px_0_0_0_var(--border)]">
+      <TableCell className="sticky right-0 z-10 w-14 bg-card py-1 pl-0 text-right shadow-[-1px_0_0_0_var(--border)]">
         <div className="flex justify-end">
           <Button
             variant="ghost"
-            size="icon"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            size="icon-sm"
+            className="text-destructive hover:bg-destructive-soft hover:text-destructive"
             onClick={(event) => onDelete(log.id, event)}
             disabled={isDeleting}
             aria-label="Excluir registro"
           >
-            <IconTrash className="h-4 w-4" />
+            <TrashIcon />
           </Button>
         </div>
       </TableCell>
@@ -488,10 +552,15 @@ function LogTableRow({ log, measures, isDeleting, onDelete }: LogRowProps) {
 
 function EmptyLogsState() {
   return (
-    <div className="py-12 text-center text-muted-foreground">
-      <p>Nenhum registro de medidas ainda.</p>
-      <p className="mt-2 text-sm">
-        Clique em "Adicionar Registro" para começar.
+    <div className="flex flex-col items-center gap-2 py-10 text-center">
+      <span className="mb-1 grid size-12 place-items-center rounded-full bg-muted text-foreground">
+        <RecordIcon size={20} />
+      </span>
+      <p className="text-[15px] font-semibold">
+        Nenhum registro de medidas ainda.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Clique em "Adicionar registro" para começar.
       </p>
     </div>
   );
@@ -547,18 +616,21 @@ function TimeSeriesRecordsContent({
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border">
+    <div className="w-full overflow-hidden rounded-xl border border-border">
       <div className="w-full overflow-x-auto">
-        <Table className="min-w-max text-xs">
-          <TableHeader className="bg-muted/40">
+        <Table className="min-w-max">
+          <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="sticky left-0 z-20 min-w-32 bg-muted/40 shadow-[1px_0_0_0_var(--border)] md:min-w-44">
+              <TableHead className="sticky left-0 z-20 min-w-32 bg-background shadow-[1px_0_0_0_var(--border)] md:min-w-44">
                 Data/Hora
               </TableHead>
               {measures.map((measure) => (
                 <TableHead
                   key={measure.id}
-                  className="min-w-24 max-w-28 px-2 py-2 text-xs leading-tight whitespace-normal md:min-w-28 md:max-w-32"
+                  className={cn(
+                    "max-w-28 min-w-24 py-2 leading-tight whitespace-normal md:max-w-32 md:min-w-28",
+                    measure.data_type === "number" && "text-right",
+                  )}
                 >
                   <div>{measure.name}</div>
                   {measure.unit && (
@@ -568,11 +640,11 @@ function TimeSeriesRecordsContent({
                   )}
                 </TableHead>
               ))}
-              <TableHead className="min-w-32 px-2 py-2 text-xs md:min-w-40">
+              <TableHead className="min-w-32 py-2 md:min-w-40">
                 Notas
               </TableHead>
-              <TableHead className="sticky right-0 z-20 w-14 bg-muted/40 text-right shadow-[-1px_0_0_0_var(--border)]">
-                Ações
+              <TableHead className="sticky right-0 z-20 w-14 bg-background pl-0 text-right shadow-[-1px_0_0_0_var(--border)]">
+                <span className="sr-only">Ações</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -612,8 +684,8 @@ export default function TreatmentSessionDetails() {
   if (isLoading) {
     return (
       <PageLayout title="Carregando...">
-        <div className="space-y-4">
-          <div className="h-30 animate-pulse rounded-xl bg-muted/50" />
+        <div className="flex h-40 items-center justify-center">
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       </PageLayout>
     );
@@ -622,7 +694,9 @@ export default function TreatmentSessionDetails() {
   if (!session) {
     return (
       <PageLayout title="Sessão não encontrada">
-        <div>A sessão de tratamento solicitada não foi encontrada.</div>
+        <div className="text-sm text-muted-foreground">
+          A sessão de tratamento solicitada não foi encontrada.
+        </div>
       </PageLayout>
     );
   }
@@ -729,95 +803,97 @@ export default function TreatmentSessionDetails() {
   };
 
   return (
-    <PageLayout title={`Sessão: ${session.template?.name || "Tratamento"}`}>
-      <div className="space-y-6 w-full min-w-0">
+    <PageLayout
+      title={`Sessão: ${session.template?.name || "Tratamento"}`}
+      description={
+        <span className="flex flex-wrap items-center gap-2">
+          {session.patient?.name || "—"}
+          <Badge variant={session.status === "active" ? "info" : "secondary"}>
+            {session.status === "active" ? (
+              <span aria-hidden className="size-1.5 rounded-full bg-current" />
+            ) : null}
+            {statusLabel}
+          </Badge>
+        </span>
+      }
+    >
+      <div className="flex w-full min-w-0 flex-col gap-4">
         {/* Session Information */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <IconInfoCircle className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Informações da Sessão</CardTitle>
-                <CardDescription>
-                  Dados gerais do tratamento e paciente
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle>Informações da sessão</CardTitle>
+            <CardDescription>
+              Dados gerais do tratamento e paciente
+            </CardDescription>
             <CardAction>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSessionInfoCollapsed(!sessionInfoCollapsed)}
-              >
-                {sessionInfoCollapsed ? (
-                  <IconChevronDown className="h-4 w-4" />
-                ) : (
-                  <IconChevronUp className="h-4 w-4" />
-                )}
-              </Button>
+              <CollapseButton
+                collapsed={sessionInfoCollapsed}
+                onToggle={() => setSessionInfoCollapsed(!sessionInfoCollapsed)}
+              />
             </CardAction>
           </CardHeader>
           {!sessionInfoCollapsed && (
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] text-muted-foreground">
                     Paciente
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-lg">
-                      {session.patient?.name || "-"}
+                    <span className="text-[15px] font-semibold">
+                      {session.patient?.name || "—"}
                     </span>
                     <Badge
                       variant={
-                        session.status === "active" ? "default" : "secondary"
+                        session.status === "active" ? "info" : "secondary"
                       }
-                      className="capitalize"
                     >
                       {statusLabel}
                     </Badge>
                   </div>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] text-muted-foreground">
                     Modelo
                   </span>
-                  <span className="font-medium">
-                    {session.template?.name || "-"}
+                  <span className="text-[15px] font-semibold">
+                    {session.template?.name || "—"}
                   </span>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] text-muted-foreground">
                     {session.completed_at ? "Período" : "Iniciado em"}
                   </span>
-                  <div className="flex flex-col">
-                    <span>{new Date(session.started_at).toLocaleString()}</span>
+                  <div className="flex flex-col tabular-nums">
+                    <span className="text-sm">
+                      {formatDateTime(session.started_at)}
+                    </span>
                     {session.completed_at && (
                       <span className="text-xs text-muted-foreground">
-                        Até {new Date(session.completed_at).toLocaleString()}
+                        Até {formatDateTime(session.completed_at)}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Total de Registros
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] text-muted-foreground">
+                    Total de registros
                   </span>
-                  <span className="font-medium text-lg">{logs.length}</span>
+                  <span className="text-[28px] leading-tight font-semibold tracking-[-0.02em] tabular-nums">
+                    {logs.length}
+                  </span>
                 </div>
               </div>
 
               {session.notes && (
-                <div className="mt-6 pt-4 border-t flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
+                <div className="mt-5 flex flex-col gap-1 border-t border-border pt-4">
+                  <span className="text-[13px] text-muted-foreground">
                     Notas
                   </span>
-                  <p className="text-sm text-foreground/90 leading-relaxed">
+                  <p className="text-sm leading-relaxed text-stone-700">
                     {session.notes}
                   </p>
                 </div>
@@ -831,35 +907,19 @@ export default function TreatmentSessionDetails() {
         {/* Measures Being Monitored */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.primary.icon}`}
-              >
-                <IconRulerMeasure className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Medidas Monitoradas</CardTitle>
-                <CardDescription>
-                  {measures.length}{" "}
-                  {measures.length === 1
-                    ? "medida configurada"
-                    : "medidas configuradas"}{" "}
-                  neste modelo
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle>Medidas monitoradas</CardTitle>
+            <CardDescription>
+              {measures.length}{" "}
+              {measures.length === 1
+                ? "medida configurada"
+                : "medidas configuradas"}{" "}
+              neste modelo
+            </CardDescription>
             <CardAction>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMeasuresCollapsed(!measuresCollapsed)}
-              >
-                {measuresCollapsed ? (
-                  <IconChevronDown className="h-4 w-4" />
-                ) : (
-                  <IconChevronUp className="h-4 w-4" />
-                )}
-              </Button>
+              <CollapseButton
+                collapsed={measuresCollapsed}
+                onToggle={() => setMeasuresCollapsed(!measuresCollapsed)}
+              />
             </CardAction>
           </CardHeader>
           {!measuresCollapsed && (
@@ -872,63 +932,36 @@ export default function TreatmentSessionDetails() {
         {/* Time Series Records */}
         <Card className="w-full min-w-0 overflow-hidden">
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.chart2.icon}`}
-              >
-                <IconTimeline className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Série Temporal de Medidas</CardTitle>
-                <CardDescription>
-                  {logs.length} {logs.length === 1 ? "registro" : "registros"}{" "}
-                  de acompanhamento
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle>Série temporal de medidas</CardTitle>
+            <CardDescription>
+              {logs.length} {logs.length === 1 ? "registro" : "registros"} de
+              acompanhamento
+            </CardDescription>
             <CardAction>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                {/* View Toggle */}
-                <div className="flex flex-wrap items-center rounded-lg overflow-hidden border">
-                  <Button
-                    size="sm"
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    onClick={() => setViewMode("list")}
-                    className="rounded-none"
-                  >
-                    <IconTimeline className="mr-2 h-4 w-4" />
-                    Lista
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={viewMode === "table" ? "default" : "ghost"}
-                    onClick={() => setViewMode("table")}
-                    className="rounded-none"
-                  >
-                    <IconTable className="mr-2 h-4 w-4" />
-                    Tabela
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={viewMode === "chart" ? "default" : "ghost"}
-                    onClick={() => setViewMode("chart")}
-                    className="rounded-none"
-                  >
-                    <IconChartLine className="mr-2 h-4 w-4" />
-                    Gráfico
-                  </Button>
-                </div>
+                <Tabs
+                  value={viewMode}
+                  onValueChange={(value) =>
+                    setViewMode(value as "list" | "table" | "chart")
+                  }
+                >
+                  <TabsList>
+                    <TabsTrigger value="list">Lista</TabsTrigger>
+                    <TabsTrigger value="table">Tabela</TabsTrigger>
+                    <TabsTrigger value="chart">Gráfico</TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 {!isAdding && (
-                  <Button size="sm" onClick={handleStartAdd}>
-                    <IconPlus className="mr-2 h-4 w-4" />
-                    Adicionar Registro
+                  <Button size="sm" variant="cta" onClick={handleStartAdd}>
+                    <PlusIcon />
+                    Adicionar registro
                   </Button>
                 )}
               </div>
             </CardAction>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 w-full min-w-0">
+            <div className="flex w-full min-w-0 flex-col gap-3">
               {isAdding && (
                 <AddLogForm
                   measures={measures}

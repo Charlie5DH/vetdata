@@ -5,7 +5,7 @@ function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
     <kbd
       data-slot="kbd"
       className={cn(
-        "bg-muted text-muted-foreground [[data-slot=tooltip-content]_&]:bg-background/20 [[data-slot=tooltip-content]_&]:text-background dark:[[data-slot=tooltip-content]_&]:bg-background/10 h-5 w-fit min-w-5 gap-1 rounded-sm px-1 font-sans text-xs font-medium [&_svg:not([class*='size-'])]:size-3 pointer-events-none inline-flex items-center justify-center select-none",
+        "bg-muted text-stone-600 border-input [[data-slot=tooltip-content]_&]:bg-forest-700 [[data-slot=tooltip-content]_&]:border-forest-600 [[data-slot=tooltip-content]_&]:text-forest-200 w-fit min-w-5 gap-1 rounded-[5px] border border-b-2 px-1.5 py-0.5 font-mono text-[11px] leading-none font-medium whitespace-nowrap [&_svg:not([class*='size-'])]:size-3 pointer-events-none inline-flex items-center justify-center select-none",
         className
       )}
       {...props}

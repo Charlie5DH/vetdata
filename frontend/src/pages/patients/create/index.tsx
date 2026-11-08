@@ -3,11 +3,10 @@ import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  IconArrowLeft,
-  IconChevronLeft,
-  IconChevronRight,
-  IconLoader2,
-} from "@tabler/icons-react";
+  ArrowLIcon,
+  ChevLIcon,
+  ChevRIcon,
+} from "@/components/icons/vetdata-icons";
 import { toast } from "sonner";
 
 import { useCreateOwner } from "@/api/owners";
@@ -15,6 +14,7 @@ import { useCreatePatient } from "@/api/patients";
 import { useCreateTreatmentSession } from "@/api/treatments";
 import { StepTracker, type Step } from "@/components/layout/step-tracker";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useClinicPath } from "@/lib/clinic-routes";
 import { cn } from "@/lib/utils";
 import { SectionPatientInfo } from "./section-patient-info";
@@ -48,7 +48,7 @@ function getFooterPrimaryLabel(step: WizardStepId) {
     case "owner-new":
     case "patient":
     case "treatment":
-      return "Proximo";
+      return "Próximo";
     case "vaccines":
       return "Revisar resumo";
     case "summary":
@@ -276,26 +276,30 @@ export default function PatientCreate() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="border-b px-6 py-4">
+      <div className="border-b border-border px-6 py-4">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
+            aria-label="Voltar para pacientes"
             onClick={() => navigate(clinicPath("/patients"))}
           >
-            <IconArrowLeft className="size-4" />
+            <ArrowLIcon />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold">Novo Paciente</h1>
-            <p className="text-sm text-muted-foreground">
-              Crie o paciente em etapas curtas, sem uma pagina longa de rolagem.
+            <h1 className="text-2xl font-semibold text-foreground">
+              Novo paciente
+            </h1>
+            <p className="text-[13.5px] text-muted-foreground">
+              Crie o paciente em etapas curtas, sem uma página longa de
+              rolagem.
             </p>
           </div>
         </div>
       </div>
 
       <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
-        <div className="border-b p-4 lg:hidden">
+        <div className="border-b border-border p-4 lg:hidden">
           <StepTracker
             steps={steps}
             activeStep={currentStep}
@@ -305,7 +309,7 @@ export default function PatientCreate() {
           />
         </div>
 
-        <aside className="hidden w-72 shrink-0 border-r lg:block">
+        <aside className="hidden w-72 shrink-0 border-r border-border lg:block">
           <div className="sticky top-4 p-4">
             <StepTracker
               steps={steps}
@@ -331,27 +335,28 @@ export default function PatientCreate() {
               {renderCurrentStep()}
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3 border-t pt-6">
-              <Button type="button" variant="outline" onClick={handlePrevious}>
-                <IconChevronLeft data-icon="inline-start" />
+            <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-5">
+              <Button type="button" variant="ghost" onClick={handlePrevious}>
+                <ChevLIcon data-icon="inline-start" />
                 {isFirstStep ? "Cancelar" : "Voltar"}
               </Button>
 
               {currentStep !== "owner-choice" &&
                 (isSummaryStep ? (
-                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                  <Button
+                    type="submit"
+                    variant="cta"
+                    disabled={form.formState.isSubmitting}
+                  >
                     {form.formState.isSubmitting && (
-                      <IconLoader2
-                        data-icon="inline-start"
-                        className="animate-spin"
-                      />
+                      <Spinner data-icon="inline-start" />
                     )}
                     Criar paciente
                   </Button>
                 ) : (
                   <Button type="button" onClick={handleNext}>
                     {getFooterPrimaryLabel(currentStep)}
-                    <IconChevronRight data-icon="inline-end" />
+                    <ChevRIcon data-icon="inline-end" />
                   </Button>
                 ))}
             </div>

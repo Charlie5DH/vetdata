@@ -4,7 +4,6 @@ import * as React from "react"
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { CircleIcon } from "lucide-react"
 
 function RadioGroup({
   className,
@@ -27,17 +26,15 @@ function RadioGroupItem({
     <RadioGroupPrimitive.Item
       data-slot="radio-group-item"
       className={cn(
-        "border-input text-primary dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 data-checked:bg-primary data-checked:border-primary flex size-4 rounded-full transition-none focus-visible:ring-[3px] aria-invalid:ring-[3px] group/radio-group-item peer relative aspect-square shrink-0 border outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "group/radio-group-item peer relative flex aspect-square size-4 shrink-0 items-center justify-center rounded-full border border-cream-500 bg-white outline-none transition-[border-color,box-shadow] duration-150 ease-out after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-forest-600 focus-visible:ring-[3px] focus-visible:ring-forest-900/12 data-checked:border-primary aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/12 disabled:cursor-not-allowed disabled:border-input disabled:bg-cream-300",
         className
       )}
       {...props}
     >
       <RadioGroupPrimitive.Indicator
         data-slot="radio-group-indicator"
-        className="group-aria-invalid/radio-group-item:text-destructive flex size-4 items-center justify-center text-white"
-      >
-        <CircleIcon className="absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 fill-current" />
-      </RadioGroupPrimitive.Indicator>
+        className="block size-2 rounded-full bg-primary group-aria-invalid/radio-group-item:bg-destructive group-disabled/radio-group-item:bg-stone-400"
+      />
     </RadioGroupPrimitive.Item>
   )
 }

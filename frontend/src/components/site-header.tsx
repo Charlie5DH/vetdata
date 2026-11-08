@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { IconChevronDown, IconPlus } from "@tabler/icons-react";
 
 import { useCurrentUser } from "@/api/auth";
+import { ChevDIcon, ChevRIcon, PlusIcon } from "@/components/icons/vetdata-icons";
 import { SearchForm } from "@/components/search-form";
 import {
   Breadcrumb,
@@ -32,24 +32,30 @@ export function SiteHeader() {
   const canInviteMember = currentUserQuery.data?.clinic_role === "clinic_owner";
 
   return (
-    <header className="sticky top-0 z-50 flex w-full items-center border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
+    <header className="sticky top-0 z-50 flex w-full items-center border-b border-border bg-background">
       <div className="flex h-(--header-height) w-full items-center pr-4 sm:pr-6">
         <div className="flex h-full w-(--sidebar-width-icon) shrink-0 items-center justify-center border-r border-border">
-          <SidebarTrigger className="size-8 rounded-lg" />
+          <SidebarTrigger className="size-8 rounded-full text-muted-foreground hover:text-foreground" />
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-3 pl-4">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium md:hidden">{page}</div>
+            <div className="truncate text-sm font-semibold text-foreground md:hidden">
+              {page}
+            </div>
             <Breadcrumb className="hidden md:block">
-              <BreadcrumbList>
+              <BreadcrumbList className="gap-2 text-[13px] text-muted-foreground sm:gap-2">
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link to={clinicPath(sectionUrl)}>{section}</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator />
+                <BreadcrumbSeparator>
+                  <ChevRIcon size={14} />
+                </BreadcrumbSeparator>
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{page}</BreadcrumbPage>
+                  <BreadcrumbPage className="font-semibold text-foreground">
+                    {page}
+                  </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -61,9 +67,9 @@ export function SiteHeader() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button>
-                <IconPlus data-icon="inline-start" />
+                <PlusIcon data-icon="inline-start" />
                 Novo
-                <IconChevronDown data-icon="inline-end" />
+                <ChevDIcon data-icon="inline-end" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">

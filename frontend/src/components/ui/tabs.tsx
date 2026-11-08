@@ -23,12 +23,15 @@ function Tabs({
 }
 
 const tabsListVariants = cva(
-  "rounded-4xl p-[max(2px,calc(var(--app-border-width)+1px))] group-data-horizontal/tabs:h-(--app-control-height-sm) group-data-vertical/tabs:rounded-2xl data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+  "group/tabs-list text-muted-foreground inline-flex w-fit items-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col group-data-[orientation=vertical]/tabs:items-stretch",
   {
     variants: {
       variant: {
-        default: "bg-muted",
-        line: "gap-1 bg-transparent",
+        // Segmented pill (Day/Week/Month)
+        default:
+          "bg-muted border-border h-auto gap-0.5 rounded-full border p-[3px] group-data-[orientation=vertical]/tabs:rounded-2xl",
+        // Underline tabs on a hairline baseline (patient page)
+        line: "border-border h-auto gap-6 rounded-none border-b bg-transparent p-0 group-data-[orientation=vertical]/tabs:gap-0 group-data-[orientation=vertical]/tabs:border-r group-data-[orientation=vertical]/tabs:border-b-0",
       },
     },
     defaultVariants: {
@@ -61,10 +64,12 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "gap-(--app-control-gap-xs) rounded-xl border-[length:var(--app-border-width)] border-transparent px-(--app-control-px-sm) py-[calc(var(--app-control-gap-xs)-1px)] text-sm font-medium group-data-vertical/tabs:px-(--app-control-px-sm) group-data-vertical/tabs:py-(--app-control-gap-sm) [&_svg:not([class*='size-'])]:size-4 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring text-foreground/60 hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center whitespace-nowrap transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent",
-        "data-active:bg-background dark:data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 data-active:text-foreground",
-        "after:bg-foreground after:absolute after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:-bottom-1.25 group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
+        "text-muted-foreground hover:text-foreground focus-visible:ring-ring/40 data-active:text-foreground relative inline-flex flex-1 items-center justify-center gap-[7px] whitespace-nowrap transition-[color,background-color,border-color,box-shadow] duration-150 ease-out outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:text-stone-400 group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        // default: segmented pill, white active segment
+        "group-data-[variant=default]/tabs-list:rounded-full group-data-[variant=default]/tabs-list:px-3.5 group-data-[variant=default]/tabs-list:py-1.5 group-data-[variant=default]/tabs-list:text-[13px] group-data-[variant=default]/tabs-list:font-medium group-data-[variant=default]/tabs-list:data-active:bg-white group-data-[variant=default]/tabs-list:data-active:font-semibold group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=default]/tabs-list:[&_svg:not([class*='size-'])]:size-4",
+        // line: 2px forest underline on the list's hairline
+        "group-data-[variant=line]/tabs-list:flex-none group-data-[variant=line]/tabs-list:rounded-none group-data-[variant=line]/tabs-list:border-transparent group-data-[variant=line]/tabs-list:py-2.5 group-data-[variant=line]/tabs-list:text-sm group-data-[variant=line]/tabs-list:font-normal group-data-[variant=line]/tabs-list:data-active:border-primary group-data-[variant=line]/tabs-list:data-active:font-semibold group-data-[variant=line]/tabs-list:[&_svg:not([class*='size-'])]:size-3.5",
+        "group-data-[orientation=horizontal]/tabs:group-data-[variant=line]/tabs-list:-mb-px group-data-[orientation=horizontal]/tabs:group-data-[variant=line]/tabs-list:border-b-2 group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:-mr-px group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:border-r-2 group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:px-3",
         className,
       )}
       {...props}

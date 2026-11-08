@@ -11,7 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useMeasures } from "@/api/templates";
-import { IconLoader2 } from "@tabler/icons-react";
+import { Spinner } from "@/components/ui/spinner";
 import type { TemplateCreateFormValues } from "./schema";
 
 interface SectionSummaryProps {
@@ -43,10 +43,10 @@ export function SectionSummary({
           Confirme as informações antes de criar o modelo.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-            Informações Gerais
+          <h4 className="mb-2 text-[13px] font-semibold text-muted-foreground">
+            Informações gerais
           </h4>
           <div className="space-y-1 text-sm">
             <div>
@@ -63,26 +63,26 @@ export function SectionSummary({
         <Separator />
 
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
+          <h4 className="mb-2 text-[13px] font-semibold text-muted-foreground">
             Medidas ({selectedMeasures?.length || 0})
           </h4>
           {selectedMeasures && selectedMeasures.length > 0 ? (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-1.5">
               {selectedMeasures.map((measure) => (
                 <div
                   key={measure.id}
-                  className="flex flex-wrap items-center gap-2 rounded-md border p-3"
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5"
                 >
                   <Badge variant="secondary">
                     {measure.name}
                     {measure.unit && (
-                      <span className="text-muted-foreground ml-1">
+                      <span className="ml-1 font-normal text-muted-foreground">
                         ({measure.unit})
                       </span>
                     )}
                   </Badge>
                   {measure.data_type === "number" && (
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-[13px] tabular-nums text-muted-foreground">
                       Limites do modelo:{" "}
                       {values.thresholds?.[measure.id]?.lower_limit?.trim() ||
                         "padrão"}
@@ -103,11 +103,15 @@ export function SectionSummary({
 
         <Separator />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting && (
-            <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          Criar Modelo
+        <Button
+          type="submit"
+          variant="cta"
+          size="lg"
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting && <Spinner />}
+          Criar modelo
         </Button>
       </CardContent>
     </Card>

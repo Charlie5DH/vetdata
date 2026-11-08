@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { Vaccine, VaccineCreate } from "@/types";
 
@@ -85,9 +86,9 @@ export function VaccineForm({
   };
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome*</Label>
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="name">Nome *</Label>
         <Input
           id="name"
           required
@@ -97,11 +98,11 @@ export function VaccineForm({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="species">Espécie*</Label>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="species">Espécie *</Label>
           <Select value={species} onValueChange={setSpecies}>
-            <SelectTrigger id="species">
+            <SelectTrigger id="species" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -113,7 +114,7 @@ export function VaccineForm({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="manufacturer">Fabricante</Label>
           <Input
             id="manufacturer"
@@ -123,17 +124,18 @@ export function VaccineForm({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="diseases">Doenças cobertas (separadas por vírgula)</Label>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="diseases">Doenças cobertas</Label>
         <Input
           id="diseases"
           value={diseasesText}
           onChange={(e) => setDiseasesText(e.target.value)}
           placeholder="Cinomose, Parvovirose, ..."
         />
+        <p className="text-xs text-muted-foreground">Separe por vírgula.</p>
       </div>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="description">Descrição</Label>
         <Textarea
           id="description"
@@ -142,28 +144,40 @@ export function VaccineForm({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="recommended_age_weeks">Idade recomendada (semanas)</Label>
-          <Input
-            id="recommended_age_weeks"
-            type="number"
-            min={0}
-            value={recommendedAgeWeeks}
-            onChange={(e) => setRecommendedAgeWeeks(e.target.value)}
-          />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="recommended_age_weeks">Idade recomendada</Label>
+          <div className="relative">
+            <Input
+              id="recommended_age_weeks"
+              type="number"
+              min={0}
+              value={recommendedAgeWeeks}
+              onChange={(e) => setRecommendedAgeWeeks(e.target.value)}
+              className="pr-20 tabular-nums"
+            />
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+              semanas
+            </span>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="booster_interval_days">Intervalo de reforço (dias)</Label>
-          <Input
-            id="booster_interval_days"
-            type="number"
-            min={0}
-            value={boosterIntervalDays}
-            onChange={(e) => setBoosterIntervalDays(e.target.value)}
-          />
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="booster_interval_days">Intervalo de reforço</Label>
+          <div className="relative">
+            <Input
+              id="booster_interval_days"
+              type="number"
+              min={0}
+              value={boosterIntervalDays}
+              onChange={(e) => setBoosterIntervalDays(e.target.value)}
+              className="pr-14 tabular-nums"
+            />
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+              dias
+            </span>
+          </div>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="doses_in_series">Doses na série</Label>
           <Input
             id="doses_in_series"
@@ -171,28 +185,39 @@ export function VaccineForm({
             min={1}
             value={dosesInSeries}
             onChange={(e) => setDosesInSeries(e.target.value)}
+            className="tabular-nums"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5 pt-1">
         <Checkbox
           id="is_mandatory"
           checked={isMandatory}
           onCheckedChange={(checked) => setIsMandatory(Boolean(checked))}
         />
-        <Label htmlFor="is_mandatory" className="cursor-pointer">
+        <Label htmlFor="is_mandatory" className="cursor-pointer font-normal">
           Vacina obrigatória por lei
         </Label>
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-2 pt-1.5">
         {onCancel ? (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </Button>
         ) : null}
-        <Button type="submit" disabled={isSubmitting || !name.trim()}>
+        <Button
+          type="submit"
+          variant="cta"
+          disabled={isSubmitting || !name.trim()}
+        >
+          {isSubmitting ? <Spinner /> : null}
           {submitLabel}
         </Button>
       </div>

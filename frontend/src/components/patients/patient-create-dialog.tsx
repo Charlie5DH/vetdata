@@ -30,7 +30,7 @@ import { useTemplates } from "@/api/templates";
 import { useCreatePatient } from "@/api/patients";
 import { useCreateTreatmentSession } from "@/api/treatments";
 import { toast } from "sonner";
-import { IconLoader2 } from "@tabler/icons-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z
   .object({
@@ -241,23 +241,23 @@ export function PatientCreateDialog({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Paciente</DialogTitle>
+          <DialogTitle>Novo paciente</DialogTitle>
           <DialogDescription>
             Siga os passos para criar um novo registro de paciente.
           </DialogDescription>
         </DialogHeader>
 
         {/* Steps Indicator */}
-        <div className="flex items-center justify-between px-2 py-4">
+        <div className="flex items-center justify-between py-2">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors",
+                  "flex size-7 items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-colors",
                   step === s
                     ? "bg-primary text-primary-foreground"
                     : step > s
-                      ? "bg-primary/20 text-primary"
+                      ? "bg-secondary text-foreground"
                       : "bg-muted text-muted-foreground",
                 )}
               >
@@ -265,18 +265,20 @@ export function PatientCreateDialog({
               </div>
               <span
                 className={cn(
-                  "text-sm font-medium",
-                  step === s ? "text-foreground" : "text-muted-foreground",
+                  "text-[13px]",
+                  step === s
+                    ? "font-semibold text-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 {s === 1 ? "Tutor" : s === 2 ? "Paciente" : "Tratamento"}
               </span>
-              {s < 3 && <div className="h-[1px] w-8 bg-border mx-2" />}
+              {s < 3 && <div className="mx-2 h-px w-8 bg-border" />}
             </div>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Step 1: Owner */}
           {step === 1 && (
             <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -291,15 +293,15 @@ export function PatientCreateDialog({
                       onValueChange={field.onChange}
                       className="w-full"
                     >
-                      <TabsList className="grid w-full grid-cols-2">
+                      <TabsList className="w-full">
                         <TabsTrigger value="existing">
                           Selecionar Existente
                         </TabsTrigger>
-                        <TabsTrigger value="new">Criar Novo</TabsTrigger>
+                        <TabsTrigger value="new">Criar novo</TabsTrigger>
                       </TabsList>
                       <TabsContent value="existing" className="space-y-4 mt-4">
                         <div className="flex flex-col gap-2">
-                          <Label htmlFor="owner_id">Selecionar Tutor *</Label>
+                          <Label htmlFor="owner_id">Selecionar tutor *</Label>
                           <p className="text-xs text-muted-foreground">
                             Pesquise e selecione um tutor existente na lista
                             abaixo.
@@ -317,7 +319,7 @@ export function PatientCreateDialog({
                           )}
                         />
                         {errors.owner_id && (
-                          <p className="text-sm text-destructive">
+                          <p className="text-xs text-destructive">
                             {errors.owner_id.message}
                           </p>
                         )}
@@ -332,7 +334,7 @@ export function PatientCreateDialog({
                               placeholder="João"
                             />
                             {errors.new_owner_first_name && (
-                              <p className="text-sm text-destructive">
+                              <p className="text-xs text-destructive">
                                 {errors.new_owner_first_name.message}
                               </p>
                             )}
@@ -347,7 +349,7 @@ export function PatientCreateDialog({
                               placeholder="Silva"
                             />
                             {errors.new_owner_last_name && (
-                              <p className="text-sm text-destructive">
+                              <p className="text-xs text-destructive">
                                 {errors.new_owner_last_name.message}
                               </p>
                             )}
@@ -361,7 +363,7 @@ export function PatientCreateDialog({
                               placeholder="joao.silva@exemplo.com"
                             />
                             {errors.new_owner_email && (
-                              <p className="text-sm text-destructive">
+                              <p className="text-xs text-destructive">
                                 {errors.new_owner_email.message}
                               </p>
                             )}
@@ -387,7 +389,7 @@ export function PatientCreateDialog({
                   placeholder="Nome do pet"
                 />
                 {errors.name && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs text-destructive">
                     {errors.name.message}
                   </p>
                 )}
@@ -415,7 +417,7 @@ export function PatientCreateDialog({
                   )}
                 />
                 {errors.species && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs text-destructive">
                     {errors.species.message}
                   </p>
                 )}
@@ -489,9 +491,9 @@ export function PatientCreateDialog({
               </div>
 
               {/* Template Selection */}
-              <div className="col-span-2 space-y-2 pt-4 border-t">
+              <div className="col-span-2 space-y-2 border-t border-border pt-4">
                 <Label htmlFor="template_id">
-                  Iniciar Tratamento (Opcional)
+                  Iniciar tratamento (opcional)
                 </Label>
                 <Controller
                   name="template_id"
@@ -547,10 +549,8 @@ export function PatientCreateDialog({
               </Button>
             ) : (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Criar Paciente
+                {isSubmitting && <Spinner />}
+                Criar paciente
               </Button>
             )}
           </DialogFooter>

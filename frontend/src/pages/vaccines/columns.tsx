@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
+import { EditIcon, MoreIcon, TrashIcon, VialIcon } from "@/components/icons/vetdata-icons";
 
 import { DataTableColumnHeader } from "@/components/table/column-header";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,17 @@ const STATUS_LABEL: Record<string, string> = {
   skipped: "Não aplicada",
 };
 
+const STATUS_VARIANT: Record<string, "success" | "warning" | "secondary"> = {
+  applied: "success",
+  scheduled: "warning",
+  skipped: "secondary",
+};
+
+const SPECIES_LABEL: Record<string, string> = {
+  cat: "Felina",
+  dog: "Canina",
+};
+
 function formatDate(value?: string | null) {
   if (!value) return "—";
   const d = new Date(value);
@@ -42,9 +53,9 @@ export function getColumns({
         <DataTableColumnHeader column={column} title="Paciente" />
       ),
       cell: ({ row }) => (
-        <div className="font-medium">
+        <span className="font-semibold text-foreground">
           {row.original.patient?.name ?? "—"}
-        </div>
+        </span>
       ),
     },
     {
@@ -56,17 +67,20 @@ export function getColumns({
       cell: ({ row }) => {
         const vaccine = row.original.vaccine;
         return (
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">{vaccine?.name ?? "—"}</span>
-            {vaccine?.species ? (
-              <span className="text-[10px] uppercase text-muted-foreground">
-                {vaccine.species === "cat"
-                  ? "Felina"
-                  : vaccine.species === "dog"
-                  ? "Canina"
-                  : vaccine.species}
+          <div className="flex items-center gap-3">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-foreground">
+              <VialIcon size={16} />
+            </span>
+            <div className="flex min-w-0 flex-col">
+              <span className="font-semibold text-foreground">
+                {vaccine?.name ?? "—"}
               </span>
-            ) : null}
+              {vaccine?.species ? (
+                <span className="text-[12.5px] text-muted-foreground">
+                  {SPECIES_LABEL[vaccine.species] ?? vaccine.species}
+                </span>
+              ) : null}
+            </div>
           </div>
         );
       },
@@ -74,9 +88,19 @@ export function getColumns({
     {
       accessorKey: "dose_number",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Dose" />
+        <DataTableColumnHeader
+          column={column}
+          title="Dose"
+          className="justify-end"
+        />
       ),
-      cell: ({ row }) => row.getValue("dose_number") ?? "—",
+      cell: ({ row }) => (
+        <div className="text-right tabular-nums">
+          {(row.getValue("dose_number") as number | null) ?? (
+            <span className="text-stone-500">—</span>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: "applied_at",
@@ -84,9 +108,9 @@ export function getColumns({
         <DataTableColumnHeader column={column} title="Aplicada em" />
       ),
       cell: ({ row }) => (
-        <div className="text-xs">
+        <span className="tabular-nums">
           {formatDate(row.getValue("applied_at"))}
-        </div>
+        </span>
       ),
     },
     {
@@ -97,12 +121,21 @@ export function getColumns({
       cell: ({ row }) => {
         const next = row.original.next_due_at;
         const overdue = row.original.is_overdue;
-        if (!next) return <span className="text-muted-foreground">—</span>;
+        if (!next) return <span className="text-stone-500">—</span>;
         return (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs">{formatDate(next)}</span>
+          <div className="flex items-center gap-2">
+            <span
+              className={
+                overdue
+                  ? "font-semibold text-destructive tabular-nums"
+                  : "tabular-nums"
+              }
+            >
+              {formatDate(next)}
+            </span>
             {overdue ? (
-              <Badge variant="destructive" className="w-fit text-[10px]">
+              <Badge variant="destructive">
+                <span className="size-1.5 rounded-full bg-current" />
                 Atrasada
               </Badge>
             ) : null}
@@ -115,7 +148,12 @@ export function getColumns({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Lote" />
       ),
-      cell: ({ row }) => row.getValue("batch") || "—",
+      cell: ({ row }) =>
+        (row.getValue("batch") as string | null) ? (
+          <span className="font-mono text-xs">{row.getValue("batch")}</span>
+        ) : (
+          <span className="text-stone-500">—</span>
+        ),
     },
     {
       accessorKey: "status",
@@ -125,7 +163,8 @@ export function getColumns({
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
         return (
-          <Badge variant={status === "applied" ? "default" : "secondary"}>
+          <Badge variant={STATUS_VARIANT[status] ?? "secondary"}>
+            <span className="size-1.5 rounded-full bg-current" />
             {STATUS_LABEL[status] ?? status}
           </Badge>
         );
@@ -133,26 +172,27 @@ export function getColumns({
     },
     {
       id: "actions",
+      header: () => <span className="sr-only">Ações</span>,
       enableSorting: false,
       enableHiding: false,
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="ml-auto">
-              <IconDotsVertical className="h-4 w-4" />
+            <Button variant="ghost" size="icon-sm" className="float-right">
+              <MoreIcon />
               <span className="sr-only">Ações</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => onEdit(row.original)}>
-              <IconEdit className="h-4 w-4" />
+              <EditIcon />
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
               onClick={() => onDelete(row.original)}
             >
-              <IconTrash className="h-4 w-4" />
+              <TrashIcon />
               Excluir
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useSortable } from "@dnd-kit/sortable";
+import { GripVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SpeciesBadge } from "@/components/species-badge";
+import { MoreIcon } from "@/components/icons/vetdata-icons";
+import { PetAvatar } from "@/components/patients/pet-avatar";
+import {
+  formatAgeShort,
+  formatWeight,
+  ownerFullName,
+} from "@/components/patients/patient-format";
 import { DataTableColumnHeader } from "@/components/table/column-header";
-import { IconDotsVertical, IconGripVertical } from "@tabler/icons-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Patient } from "@/types";
 
@@ -24,10 +30,10 @@ function DragHandle({ id }: { id: string }) {
       {...attributes}
       {...listeners}
       variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent cursor-grab active:cursor-grabbing"
+      size="icon-xs"
+      className="cursor-grab text-muted-foreground hover:bg-transparent active:cursor-grabbing"
     >
-      <IconGripVertical className="text-muted-foreground size-3" />
+      <GripVertical className="size-3.5" />
       <span className="sr-only">Arraste para reordenar</span>
     </Button>
   );
@@ -47,7 +53,7 @@ export const patientColumns: ColumnDef<Patient>[] = [
     id: "select",
     accessorFn: (row) => row.id,
     header: ({ table }) => (
-      <div className="flex items-center justify-center">
+      <div className="flex w-6 items-center justify-center">
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
@@ -59,7 +65,7 @@ export const patientColumns: ColumnDef<Patient>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex items-center justify-center">
+      <div className="flex w-6 items-center justify-center">
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -78,51 +84,57 @@ export const patientColumns: ColumnDef<Patient>[] = [
     ),
     accessorFn: (row) => row.name,
     cell: ({ row }) => (
-      <div className="flex flex-col min-w-45">
-        <div className="flex items-center gap-2">
+      <div className="flex min-w-45 items-center gap-3">
+        <PetAvatar species={row.original.species} />
+        <div className="flex min-w-0 flex-col">
           <Link
             to={`/patients/${row.original.id}`}
-            className="font-medium hover:underline"
+            className="font-semibold text-foreground hover:underline"
           >
             {row.original.name}
           </Link>
-          <SpeciesBadge species={row.original.species} />
+          <span className="truncate text-[12.5px] text-muted-foreground">
+            {[row.original.species, row.original.breed]
+              .filter(Boolean)
+              .join(" · ") || "—"}
+          </span>
         </div>
-        <span
-          className="text-sm text-muted-foreground truncate"
-          title={row.original.motive || ""}
-        >
-          {row.original.motive || "Motivo não informado"}
-        </span>
       </div>
     ),
     enableHiding: false,
   },
   {
-    accessorKey: "breed",
+    accessorKey: "motive",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Raça" />
+      <DataTableColumnHeader column={column} title="Motivo" />
     ),
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.breed || "-"}</span>
-    ),
+    cell: ({ row }) =>
+      row.original.motive ? (
+        <span className="block max-w-56 truncate" title={row.original.motive}>
+          {row.original.motive}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">Motivo não informado</span>
+      ),
   },
   {
     id: "owner",
-    accessorFn: (row) =>
-      row.owner
-        ? `${row.owner.first_name} ${row.owner.last_name}`
-        : "Desconhecido",
+    accessorFn: (row) => ownerFullName(row.owner) ?? "Desconhecido",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tutor" />
     ),
-    cell: ({ row }) => (
-      <div className="font-medium">
-        {row.original.owner
-          ? `${row.original.owner.first_name} ${row.original.owner.last_name}`
-          : "-"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const owner = row.original.owner;
+      if (!owner) return <span className="text-muted-foreground">—</span>;
+      return (
+        <div className="flex flex-col">
+          <span className="text-foreground">{ownerFullName(owner)}</span>
+          <span className="text-[12.5px] text-muted-foreground tabular-nums">
+            {owner.phone || "—"}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: "age",
@@ -132,48 +144,68 @@ export const patientColumns: ColumnDef<Patient>[] = [
       return years * 12 + months;
     },
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Idade" />
+      <DataTableColumnHeader
+        column={column}
+        title="Idade"
+        className="justify-end"
+      />
     ),
     cell: ({ row }) => (
-      <div className="text-muted-foreground">
-        {row.original.age_years ? `${row.original.age_years}a` : ""}{" "}
-        {row.original.age_months ? `${row.original.age_months}m` : ""}
+      <div className="text-right tabular-nums">
+        {formatAgeShort(row.original.age_years, row.original.age_months)}
       </div>
     ),
   },
   {
     accessorKey: "weight_kg",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Peso" />
+      <DataTableColumnHeader
+        column={column}
+        title="Peso"
+        className="justify-end"
+      />
     ),
-    cell: ({ row }) => (
-      <div className="text-muted-foreground">
-        {row.original.weight_kg ? `${row.original.weight_kg} kg` : "-"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const weight = formatWeight(row.original.weight_kg);
+      return (
+        <div className="text-right tabular-nums">
+          {weight ? (
+            <>
+              {weight}
+              <span className="ml-1 text-muted-foreground">kg</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
+      );
+    },
   },
   {
     id: "actions",
+    header: () => <span className="sr-only">Ações</span>,
     accessorFn: (row) => row.id,
     cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical className="size-4" />
-            <span className="sr-only">Abrir menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Editar</DropdownMenuItem>
-          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Excluir</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground data-[state=open]:bg-muted"
+            >
+              <MoreIcon />
+              <span className="sr-only">Abrir menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem>Editar</DropdownMenuItem>
+            <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Excluir</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
     enableSorting: false,
   },

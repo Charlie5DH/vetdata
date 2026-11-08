@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { frontendEnv } from "@/lib/env";
 
 declare global {
@@ -127,9 +128,10 @@ export function GoogleButton({
 
   return (
     <div className="flex flex-col gap-2">
-      <button
+      <Button
         type="button"
-        className="auth-btn-google"
+        variant="outline"
+        className="h-10 w-full rounded-full bg-white font-medium"
         disabled={!ready || disabled}
         onClick={() => {
           window.google?.accounts.id.prompt();
@@ -137,17 +139,15 @@ export function GoogleButton({
       >
         <GoogleIcon />
         {label}
-      </button>
-      {error ? (
-        <p className="auth-field-error">{error}</p>
-      ) : null}
+      </Button>
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   );
 }
 
 function GoogleIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z"

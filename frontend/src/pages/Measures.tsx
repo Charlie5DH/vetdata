@@ -48,7 +48,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { getColumns } from "./measures/columns";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -58,14 +57,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconAlertTriangle,
-  IconPlus,
-} from "@tabler/icons-react";
+  AlertIcon,
+  ChevLIcon,
+  ChevRIcon,
+  PlusIcon,
+} from "@/components/icons/vetdata-icons";
+import { Spinner } from "@/components/ui/spinner";
 import type { Measure } from "@/types";
 
 export default function Measures() {
@@ -119,12 +118,9 @@ export default function Measures() {
   if (isLoading) {
     return (
       <PageLayout title="Medidas">
-        <div className="flex items-center justify-center h-full">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-8 w-8 border-b-2 border-primary"
-          />
+        <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Spinner />
+          Carregando medidas...
         </div>
       </PageLayout>
     );
@@ -133,107 +129,97 @@ export default function Measures() {
   if (error) {
     return (
       <PageLayout title="Medidas">
-        <div className="text-destructive">Erro ao carregar medidas</div>
+        <div className="rounded-lg border border-border bg-destructive-soft px-4 py-3 text-[13.5px] text-destructive">
+          Erro ao carregar medidas
+        </div>
       </PageLayout>
     );
   }
 
   return (
     <PageLayout title="Medidas">
-      <div className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <DataTableToolbar
-            table={table}
-            searchColumn="name"
-            searchPlaceholder="Buscar medidas..."
-            rightExtra={
-              <Button asChild>
-                <Link to={clinicPath("/measures/new")}>
-                  <IconPlus className="mr-2 h-4 w-4" />
-                  Medida
-                </Link>
-              </Button>
-            }
-          />
-        </motion.div>
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <DataTableToolbar
+          table={table}
+          searchColumn="name"
+          searchPlaceholder="Buscar medidas..."
+          rightExtra={
+            <Button asChild variant="cta">
+              <Link to={clinicPath("/measures/new")}>
+                <PlusIcon />
+                Nova medida
+              </Link>
+            </Button>
+          }
+        />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-md border bg-card"
-        >
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={
+                      header.column.id === "actions" ? "w-14" : undefined
+                    }
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        cell.column.id === "actions"
+                          ? "w-14 pl-0 text-right"
+                          : undefined
+                      }
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence mode="wait">
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row, index) => (
-                    <motion.tr
-                      key={row.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                      className="group hover:bg-muted/50 data-[state=selected]:bg-muted"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </motion.tr>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      Nenhum resultado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-        </motion.div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Nenhum resultado.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+        <div className="flex flex-col gap-3 border-t border-border px-4 py-2.5 text-[12.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div className="hidden flex-1 lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:gap-4 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              <Label htmlFor="rows-per-page" className="text-[12.5px]">
                 Linhas por página
               </Label>
               <Select
@@ -256,53 +242,52 @@ export default function Measures() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
+            <div className="flex w-fit items-center justify-center tabular-nums">
               Página {table.getState().pagination.pageIndex + 1} de{" "}
               {table.getPageCount()}
             </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <div className="ml-auto flex items-center gap-1 lg:ml-0">
               <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
+                variant="ghost"
+                size="icon-sm"
+                className="hidden lg:flex"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
                 <span className="sr-only">Ir para a primeira página</span>
-                <IconChevronsLeft className="h-4 w-4" />
+                <ChevronsLeft />
               </Button>
               <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
                 <span className="sr-only">Ir para a página anterior</span>
-                <IconChevronLeft className="h-4 w-4" />
+                <ChevLIcon />
               </Button>
               <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
                 <span className="sr-only">Ir para a próxima página</span>
-                <IconChevronRight className="h-4 w-4" />
+                <ChevRIcon />
               </Button>
               <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
+                variant="ghost"
+                size="icon-sm"
+                className="hidden lg:flex"
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
                 <span className="sr-only">Ir para a última página</span>
-                <IconChevronsRight className="h-4 w-4" />
+                <ChevronsRight />
               </Button>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <Sheet
@@ -321,7 +306,7 @@ export default function Measures() {
             </SheetDescription>
           </SheetHeader>
           {editingMeasure ? (
-            <div className="p-6 pt-0">
+            <div className="px-6 pb-6">
               <MeasureForm
                 initialMeasure={editingMeasure}
                 submitLabel="Salvar alterações"
@@ -357,7 +342,7 @@ export default function Measures() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogMedia>
-              <IconAlertTriangle />
+              <AlertIcon />
             </AlertDialogMedia>
             <AlertDialogTitle>Excluir medida</AlertDialogTitle>
             <AlertDialogDescription>

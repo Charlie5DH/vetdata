@@ -1,16 +1,11 @@
 import { useMemo } from "react";
 import { Controller, useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  IconCheck,
-  IconLoader2,
-  IconPlus,
-  IconRuler,
-} from "@tabler/icons-react";
 import * as z from "zod";
 
 import type { Measure, MeasureCreate } from "@/types/template";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckIcon, ScaleIcon } from "@/components/icons/vetdata-icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { themeAccentClasses } from "@/lib/theme-styles";
 
 const measureTypeValues = ["number", "text", "select", "boolean"] as const;
 
@@ -217,6 +212,7 @@ export function MeasureForm({
   });
 
   const selectedType = useWatch({ control, name: "data_type" });
+  const unitValue = useWatch({ control, name: "unit" });
   const optionsText = useWatch({ control, name: "options_text" });
   const parsedOptions = useMemo(
     () => parseMeasureOptions(optionsText),
@@ -231,23 +227,23 @@ export function MeasureForm({
 
   return (
     <form onSubmit={submitHandler} className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b px-5 pt-5">
           <div className="flex items-center gap-3">
-            <div className={`rounded-lg p-2 ${themeAccentClasses.chart3.icon}`}>
-              <IconRuler className="h-5 w-5" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground">
+              <ScaleIcon size={16} />
             </div>
-            <div>
-              <CardTitle>Informações da medida</CardTitle>
+            <div className="space-y-0.5">
+              <CardTitle className="text-base">Informações da medida</CardTitle>
               <CardDescription>
                 Defina o nome, tipo e os parâmetros usados para monitoramento.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
+        <CardContent className="p-5">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid content-start gap-1.5 md:col-span-2">
               <Label htmlFor="measure-name">Nome *</Label>
               <Controller
                 name="name"
@@ -262,13 +258,13 @@ export function MeasureForm({
                 )}
               />
               {errors.name ? (
-                <p className="text-sm text-destructive">
+                <p className="text-xs text-destructive">
                   {errors.name.message}
                 </p>
               ) : null}
             </div>
 
-            <div className="space-y-2">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="measure-type">Tipo *</Label>
               <Controller
                 name="data_type"
@@ -296,13 +292,13 @@ export function MeasureForm({
                 )}
               />
               {errors.data_type ? (
-                <p className="text-sm text-destructive">
+                <p className="text-xs text-destructive">
                   {errors.data_type.message}
                 </p>
               ) : null}
             </div>
 
-            <div className="space-y-2">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="measure-unit">Unidade</Label>
               <Controller
                 name="unit"
@@ -319,46 +315,62 @@ export function MeasureForm({
 
             {showNumericLimits ? (
               <>
-                <div className="space-y-2">
+                <div className="grid content-start gap-1.5">
                   <Label htmlFor="lower-limit">Limite inferior</Label>
                   <Controller
                     name="lower_limit"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="lower-limit"
-                        type="number"
-                        inputMode="decimal"
-                        placeholder="Opcional"
-                        aria-invalid={Boolean(errors.lower_limit)}
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          id="lower-limit"
+                          type="number"
+                          inputMode="decimal"
+                          placeholder="Opcional"
+                          className="tabular-nums pr-16"
+                          aria-invalid={Boolean(errors.lower_limit)}
+                        />
+                        {unitValue.trim() ? (
+                          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+                            {unitValue.trim()}
+                          </span>
+                        ) : null}
+                      </div>
                     )}
                   />
                   {errors.lower_limit ? (
-                    <p className="text-sm text-destructive">
+                    <p className="text-xs text-destructive">
                       {errors.lower_limit.message}
                     </p>
                   ) : null}
                 </div>
-                <div className="space-y-2">
+                <div className="grid content-start gap-1.5">
                   <Label htmlFor="upper-limit">Limite superior</Label>
                   <Controller
                     name="upper_limit"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="upper-limit"
-                        type="number"
-                        inputMode="decimal"
-                        placeholder="Opcional"
-                        aria-invalid={Boolean(errors.upper_limit)}
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          id="upper-limit"
+                          type="number"
+                          inputMode="decimal"
+                          placeholder="Opcional"
+                          className="tabular-nums pr-16"
+                          aria-invalid={Boolean(errors.upper_limit)}
+                        />
+                        {unitValue.trim() ? (
+                          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+                            {unitValue.trim()}
+                          </span>
+                        ) : null}
+                      </div>
                     )}
                   />
                   {errors.upper_limit ? (
-                    <p className="text-sm text-destructive">
+                    <p className="text-xs text-destructive">
                       {errors.upper_limit.message}
                     </p>
                   ) : null}
@@ -367,8 +379,8 @@ export function MeasureForm({
             ) : null}
 
             {showOptions ? (
-              <div className="space-y-3 md:col-span-2">
-                <div className="space-y-2">
+              <div className="grid gap-3 md:col-span-2">
+                <div className="grid content-start gap-1.5">
                   <Label htmlFor="measure-options">Opções *</Label>
                   <Controller
                     name="options_text"
@@ -383,54 +395,58 @@ export function MeasureForm({
                     )}
                   />
                   {errors.options_text ? (
-                    <p className="text-sm text-destructive">
+                    <p className="text-xs text-destructive">
                       {errors.options_text.message}
                     </p>
                   ) : null}
                 </div>
-                <Alert>
-                  <IconPlus />
-                  <AlertTitle>Pré-visualização das opções</AlertTitle>
-                  <AlertDescription>
-                    {parsedOptions.length > 0
-                      ? parsedOptions.join(", ")
-                      : "As opções aparecerão aqui conforme forem digitadas."}
-                  </AlertDescription>
-                </Alert>
+                <div className="grid gap-1.5">
+                  <p className="text-xs text-muted-foreground">
+                    Pré-visualização das opções
+                  </p>
+                  {parsedOptions.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {parsedOptions.map((option, index) => (
+                        <Badge key={`${option}-${index}`} variant="outline">
+                          {option}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-stone-500">
+                      As opções aparecerão aqui conforme forem digitadas.
+                    </p>
+                  )}
+                </div>
               </div>
             ) : null}
           </div>
         </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-end gap-3">
-            {onCancel ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={isSubmitting}
-              >
-                {cancelLabel}
-              </Button>
-            ) : null}
-            <Button type="submit" disabled={isSubmitting} className="min-w-36">
-              {isSubmitting ? (
-                <>
-                  <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <IconCheck className="mr-2 h-4 w-4" />
-                  {submitLabel}
-                </>
-              )}
+        <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
+          {onCancel ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              {cancelLabel}
             </Button>
-          </div>
-        </CardContent>
+          ) : null}
+          <Button type="submit" variant="cta" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Spinner />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <CheckIcon />
+                {submitLabel}
+              </>
+            )}
+          </Button>
+        </div>
       </Card>
     </form>
   );

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import type { ReactNode } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +9,8 @@ import { isAxiosError } from "axios";
 
 import { currentUserQueryKey } from "@/api/auth";
 import { createClinic } from "@/api/clinics";
+import { EyeOffIcon, Loader2Icon } from "lucide-react";
+
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
 import {
@@ -15,6 +18,15 @@ import {
   type ClinicEssentialsValues,
 } from "@/components/auth/clinic-essentials-form";
 import { GoogleButton } from "@/components/auth/google-button";
+import {
+  ClinicIcon,
+  EyeIcon,
+  OwnerIcon,
+} from "@/components/icons/vetdata-icons";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { frontendEnv } from "@/lib/env";
 import { buildClinicPath, slugifyClinicName } from "@/lib/clinic-routes";
 
@@ -36,71 +48,44 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function EyeIcon({ open }: { open: boolean }) {
-  return open ? (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ) : (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 3l18 18" />
-      <path d="M10.6 10.6a3 3 0 0 0 4.2 4.2" />
-      <path d="M9.9 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.4 4.3" />
-      <path d="M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1" />
-    </svg>
-  );
-}
+const SIGN_UP_STEPS = [
+  { label: "Conta", Icon: OwnerIcon },
+  { label: "Clínica", Icon: ClinicIcon },
+] as const;
 
-function ArrowRight() {
+function StepHeader({ step }: { step: number }) {
   return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <nav
+      aria-label={`Passo ${step + 1} de ${SIGN_UP_STEPS.length}`}
+      className="flex items-center justify-center gap-2.5 text-[12.5px]"
     >
-      <path d="M5 12h14" />
-      <path d="M13 6l6 6-6 6" />
-    </svg>
-  );
-}
-
-function StepHeader({ step, total }: { step: number; total: number }) {
-  return (
-    <div className="auth-steps">
-      {Array.from({ length: total }).map((_, i) => (
-        <span
-          key={i}
-          className={
-            "auth-step-dot" +
-            (i === step ? " is-active" : i < step ? " is-done" : "")
-          }
-        />
+      {SIGN_UP_STEPS.map(({ label, Icon }, i) => (
+        <Fragment key={label}>
+          {i > 0 ? (
+            <span aria-hidden="true" className="text-stone-400">
+              ·
+            </span>
+          ) : null}
+          <span
+            aria-current={i === step ? "step" : undefined}
+            className={cn(
+              "inline-flex items-center gap-1.5 border-b-2 border-transparent py-1.5",
+              i < step && "font-semibold text-foreground",
+              i === step && "border-forest-900 font-semibold text-foreground",
+              i > step && "text-stone-400",
+            )}
+          >
+            <Icon size={14} />
+            {label}
+          </span>
+        </Fragment>
       ))}
-      <span className="auth-step-label">
-        Passo {step + 1} de {total}
-      </span>
-    </div>
+    </nav>
   );
+}
+
+function FieldError({ children }: { children: ReactNode }) {
+  return <p className="px-5 text-xs text-destructive">{children}</p>;
 }
 
 type StepState =
@@ -228,175 +213,155 @@ export default function SignUpPage() {
     >
       {step.kind === "account" ? (
         <div className="auth-mode-fade">
-          <StepHeader step={0} total={2} />
+          <StepHeader step={0} />
           <div className="auth-heading">
-            <h1>
-              Criar sua <em>conta</em>
-            </h1>
+            <h1>Criar sua conta</h1>
             <p>Comece a organizar sua clínica em minutos</p>
           </div>
 
-          {googleEnabled ? (
-            <>
-              <GoogleButton
-                onCredential={onGoogleCredential}
-                disabled={submitting}
-                label="Cadastrar com Google"
-              />
-              <div className="auth-divider">
-                <span>ou</span>
-              </div>
-            </>
-          ) : null}
-
           <form
             onSubmit={handleSubmit(onAccountSubmit)}
-            className="auth-form"
+            className="flex flex-col gap-3 text-left"
             noValidate
           >
-            <div className="auth-row">
-              <div className="auth-field">
-                <label className="auth-field-label" htmlFor="first-name">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="sr-only" htmlFor="first-name">
                   Nome
                 </label>
-                <input
+                <Input
                   id="first-name"
-                  className={
-                    "auth-input" +
-                    (errors.first_name ? " auth-input--error" : "")
-                  }
-                  placeholder="Ana"
+                  aria-invalid={Boolean(errors.first_name)}
+                  placeholder="Nome"
                   autoComplete="given-name"
                   disabled={submitting}
                   {...register("first_name")}
                 />
                 {errors.first_name ? (
-                  <div className="auth-field-error">
-                    {errors.first_name.message}
-                  </div>
+                  <FieldError>{errors.first_name.message}</FieldError>
                 ) : null}
               </div>
-              <div className="auth-field">
-                <label className="auth-field-label" htmlFor="last-name">
+              <div className="flex flex-col gap-1.5">
+                <label className="sr-only" htmlFor="last-name">
                   Sobrenome
                 </label>
-                <input
+                <Input
                   id="last-name"
-                  className={
-                    "auth-input" +
-                    (errors.last_name ? " auth-input--error" : "")
-                  }
-                  placeholder="Ribeiro"
+                  aria-invalid={Boolean(errors.last_name)}
+                  placeholder="Sobrenome"
                   autoComplete="family-name"
                   disabled={submitting}
                   {...register("last_name")}
                 />
                 {errors.last_name ? (
-                  <div className="auth-field-error">
-                    {errors.last_name.message}
-                  </div>
+                  <FieldError>{errors.last_name.message}</FieldError>
                 ) : null}
               </div>
             </div>
 
-            <div className="auth-field">
-              <label className="auth-field-label" htmlFor="signup-email">
+            <div className="flex flex-col gap-1.5">
+              <label className="sr-only" htmlFor="signup-email">
                 E-mail
               </label>
-              <input
+              <Input
                 id="signup-email"
                 type="email"
-                className={
-                  "auth-input" + (errors.email ? " auth-input--error" : "")
-                }
-                placeholder="voce@clinica.com"
+                aria-invalid={Boolean(errors.email)}
+                placeholder="E-mail"
                 autoComplete="email"
                 disabled={submitting}
                 {...register("email")}
               />
               {errors.email ? (
-                <div className="auth-field-error">{errors.email.message}</div>
+                <FieldError>{errors.email.message}</FieldError>
               ) : null}
             </div>
 
-            <div className="auth-field">
-              <label className="auth-field-label" htmlFor="signup-password">
+            <div className="flex flex-col gap-1.5">
+              <label className="sr-only" htmlFor="signup-password">
                 Senha
               </label>
-              <div className="auth-input-wrap">
-                <input
+              <div className="relative">
+                <Input
                   id="signup-password"
                   type={showPassword ? "text" : "password"}
-                  className={
-                    "auth-input auth-input--with-action" +
-                    (errors.password ? " auth-input--error" : "")
-                  }
-                  placeholder="Mínimo de 8 caracteres"
+                  aria-invalid={Boolean(errors.password)}
+                  className="pr-12"
+                  placeholder="Senha (mínimo de 8 caracteres)"
                   autoComplete="new-password"
                   disabled={submitting}
                   {...register("password")}
                 />
                 <button
                   type="button"
-                  className="auth-input-eye"
+                  className="absolute top-1/2 right-1 grid size-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-stone-500 transition-colors hover:bg-accent hover:text-foreground"
                   onClick={() => setShowPassword((s) => !s)}
                   aria-label={
                     showPassword ? "Ocultar senha" : "Mostrar senha"
                   }
                 >
-                  <EyeIcon open={showPassword} />
+                  {showPassword ? (
+                    <EyeOffIcon className="size-4" />
+                  ) : (
+                    <EyeIcon size={16} />
+                  )}
                 </button>
               </div>
               {errors.password ? (
-                <div className="auth-field-error">
-                  {errors.password.message}
-                </div>
+                <FieldError>{errors.password.message}</FieldError>
               ) : null}
             </div>
 
-            <div className="auth-field">
-              <label className="auth-field-label" htmlFor="signup-crmv">
-                CRMV <span className="auth-field-hint">· opcional</span>
+            <div className="flex flex-col gap-1.5">
+              <label className="sr-only" htmlFor="signup-crmv">
+                CRMV (opcional)
               </label>
-              <input
+              <Input
                 id="signup-crmv"
-                className="auth-input"
-                placeholder="Ex.: SP-12345"
+                placeholder="CRMV (opcional), ex.: SP-12345"
                 disabled={submitting}
                 {...register("crmv")}
               />
             </div>
 
             {submitError ? (
-              <div className="auth-error-banner" role="alert">
-                {submitError}
-              </div>
+              <Alert variant="destructive">{submitError}</Alert>
             ) : null}
 
-            <button
+            <Button
               type="submit"
-              className="auth-btn-primary"
+              variant="cta"
+              className="h-10 w-full"
               disabled={submitting}
             >
               {isSubmitting ? (
                 <>
-                  <span className="auth-spinner" /> Criando conta…
+                  <Loader2Icon className="animate-spin" /> Criando conta…
                 </>
               ) : (
-                <>
-                  Continuar <ArrowRight />
-                </>
+                "Continuar"
               )}
-            </button>
+            </Button>
           </form>
+
+          {googleEnabled ? (
+            <>
+              <div className="auth-divider">
+                <span>ou</span>
+              </div>
+              <GoogleButton
+                onCredential={onGoogleCredential}
+                disabled={submitting}
+                label="Cadastrar com Google"
+              />
+            </>
+          ) : null}
         </div>
       ) : (
         <div className="auth-mode-fade">
-          <StepHeader step={1} total={2} />
+          <StepHeader step={1} />
           <div className="auth-heading">
-            <h1>
-              Sua <em>clínica</em>
-            </h1>
+            <h1>Sua clínica</h1>
             <p>
               {step.skippedAccount
                 ? `Olá, ${user?.first_name || "doutor(a)"}. Vamos criar a clínica.`

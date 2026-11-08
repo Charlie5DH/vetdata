@@ -2,7 +2,7 @@ import * as React from "react"
 import { Menubar as MenubarPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { CheckIcon, ChevronRightIcon } from "lucide-react"
+import { CheckIcon, ChevRIcon } from "@/components/icons/vetdata-icons"
 
 function Menubar({
   className,
@@ -11,7 +11,7 @@ function Menubar({
   return (
     <MenubarPrimitive.Root
       data-slot="menubar"
-      className={cn("bg-background h-9 rounded-2xl border p-1 flex items-center", className)}
+      className={cn("bg-card border-border flex h-10 items-center gap-0.5 rounded-full border p-1", className)}
       {...props}
     />
   )
@@ -51,7 +51,7 @@ function MenubarTrigger({
     <MenubarPrimitive.Trigger
       data-slot="menubar-trigger"
       className={cn(
-        "hover:bg-muted aria-expanded:bg-muted rounded-xl px-2.5 py-1 text-sm font-medium flex items-center outline-hidden select-none",
+        "text-foreground hover:bg-accent aria-expanded:bg-accent data-open:bg-accent focus-visible:bg-accent flex h-8 items-center rounded-full px-3 text-[13px] font-medium outline-hidden select-none transition-colors duration-150 ease-out",
         className
       )}
       {...props}
@@ -73,7 +73,7 @@ function MenubarContent({
         align={align}
         alignOffset={alignOffset}
         sideOffset={sideOffset}
-        className={cn("bg-popover text-popover-foreground data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ring-foreground/5 min-w-48 rounded-2xl p-1 shadow-2xl ring-1 duration-100 z-50 origin-(--radix-menubar-content-transform-origin) overflow-hidden", className )}
+        className={cn("data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-[0.98] data-open:zoom-in-[0.98] bg-popover text-popover-foreground border-border z-50 min-w-[220px] rounded-xl border p-1.5 shadow-md duration-200 origin-(--radix-menubar-content-transform-origin) overflow-hidden", className )}
         {...props}
       />
     </MenubarPortal>
@@ -95,7 +95,7 @@ function MenubarItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive not-data-[variant=destructive]:focus:**:text-accent-foreground gap-2.5 rounded-xl px-3 py-2 text-sm data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg:not([class*='size-'])]:size-4 group/menubar-item relative flex cursor-default items-center outline-hidden select-none data-[disabled]:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "text-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex min-h-[34px] cursor-default items-center gap-2.5 rounded-md px-2.5 py-[7px] text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:text-stone-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-stone-600 data-[disabled]:[&_svg]:text-stone-400 group/menubar-item data-[inset]:pl-9 data-[variant=destructive]:text-destructive data-[variant=destructive]:data-highlighted:bg-destructive-soft data-[variant=destructive]:data-highlighted:text-destructive data-[variant=destructive]:[&_svg]:text-destructive",
         className
       )}
       {...props}
@@ -113,16 +113,15 @@ function MenubarCheckboxItem({
     <MenubarPrimitive.CheckboxItem
       data-slot="menubar-checkbox-item"
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-2.5 rounded-xl py-2 pr-3 pl-8 text-sm data-disabled:opacity-50 relative flex cursor-default items-center outline-hidden select-none data-disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "text-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex min-h-[34px] cursor-default items-center gap-2.5 rounded-md px-2.5 py-[7px] text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:text-stone-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-stone-600 data-[disabled]:[&_svg]:text-stone-400 pl-9",
         className
       )}
       checked={checked}
       {...props}
     >
-      <span className="left-2 size-4 [&_svg:not([class*='size-'])]:size-4 pointer-events-none absolute flex items-center justify-center">
+      <span className="pointer-events-none absolute left-2.5 flex size-4 items-center justify-center">
         <MenubarPrimitive.ItemIndicator>
-          <CheckIcon
-          />
+          <CheckIcon className="text-primary size-3.5" />
         </MenubarPrimitive.ItemIndicator>
       </span>
       {children}
@@ -139,15 +138,14 @@ function MenubarRadioItem({
     <MenubarPrimitive.RadioItem
       data-slot="menubar-radio-item"
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-2.5 rounded-xl py-2 pr-3 pl-8 text-sm data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 relative flex cursor-default items-center outline-hidden select-none data-disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "text-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex min-h-[34px] cursor-default items-center gap-2.5 rounded-md px-2.5 py-[7px] text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:text-stone-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-stone-600 data-[disabled]:[&_svg]:text-stone-400 pl-9",
         className
       )}
       {...props}
     >
-      <span className="left-2 size-4 [&_svg:not([class*='size-'])]:size-4 pointer-events-none absolute flex items-center justify-center">
+      <span className="pointer-events-none absolute left-2.5 flex size-4 items-center justify-center">
         <MenubarPrimitive.ItemIndicator>
-          <CheckIcon
-          />
+          <CheckIcon className="text-primary size-3.5" />
         </MenubarPrimitive.ItemIndicator>
       </span>
       {children}
@@ -166,7 +164,7 @@ function MenubarLabel({
     <MenubarPrimitive.Label
       data-slot="menubar-label"
       data-inset={inset}
-      className={cn("text-muted-foreground px-3.5 py-2.5 text-xs data-[inset]:pl-8", className)}
+      className={cn("px-2.5 pt-2 pb-1 text-[11px] font-semibold tracking-[0.08em] text-stone-500 uppercase data-[inset]:pl-9", className)}
       {...props}
     />
   )
@@ -179,7 +177,7 @@ function MenubarSeparator({
   return (
     <MenubarPrimitive.Separator
       data-slot="menubar-separator"
-      className={cn("bg-border/50 -mx-1 my-1 h-px", className)}
+      className={cn("bg-border -mx-1.5 my-1 h-px", className)}
       {...props}
     />
   )
@@ -192,7 +190,7 @@ function MenubarShortcut({
   return (
     <span
       data-slot="menubar-shortcut"
-      className={cn("text-muted-foreground group-focus/menubar-item:text-accent-foreground text-xs tracking-widest ml-auto", className)}
+      className={cn("bg-muted border-input ml-auto rounded-[5px] border border-b-2 px-1.5 font-mono text-[11px] leading-4 text-stone-600", className)}
       {...props}
     />
   )
@@ -217,13 +215,13 @@ function MenubarSubTrigger({
       data-slot="menubar-sub-trigger"
       data-inset={inset}
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground gap-2 rounded-xl px-3 py-2 text-sm data-[inset]:pl-8 [&_svg:not([class*='size-'])]:size-4 flex cursor-default items-center outline-none select-none",
+        "text-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex min-h-[34px] cursor-default items-center gap-2.5 rounded-md px-2.5 py-[7px] text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:text-stone-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-stone-600 data-[disabled]:[&_svg]:text-stone-400 data-open:bg-accent data-open:text-accent-foreground data-[inset]:pl-9",
         className
       )}
       {...props}
     >
       {children}
-      <ChevronRightIcon className="ml-auto size-4" />
+      <ChevRIcon className="ml-auto" />
     </MenubarPrimitive.SubTrigger>
   )
 }
@@ -235,7 +233,7 @@ function MenubarSubContent({
   return (
     <MenubarPrimitive.SubContent
       data-slot="menubar-sub-content"
-      className={cn("bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ring-foreground/5 min-w-32 rounded-2xl p-1 shadow-2xl ring-1 duration-100 z-50 origin-(--radix-menubar-content-transform-origin) overflow-hidden", className )}
+      className={cn("data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-[0.98] data-open:zoom-in-[0.98] bg-popover text-popover-foreground border-border z-50 min-w-[220px] rounded-xl border p-1.5 shadow-md duration-200 origin-(--radix-menubar-content-transform-origin) overflow-hidden", className )}
       {...props}
     />
   )

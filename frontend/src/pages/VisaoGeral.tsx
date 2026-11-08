@@ -1,16 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-  Activity,
-  Filter,
-  Bird,
-  Cat,
-  Fish,
-  PawPrint,
-  Rabbit,
-  Dog,
-} from "lucide-react";
+import { FilterIcon, HeartPulseIcon } from "@/components/icons/vetdata-icons";
+import { PetAvatar } from "@/components/patients/pet-avatar";
 
 import { useSessionsAlerts } from "@/api/alerts";
 import { useTreatmentSessions } from "@/api/treatments";
@@ -18,6 +9,7 @@ import { PageLayout } from "@/components/layout/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -33,7 +25,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClinicPath } from "@/lib/clinic-routes";
-import { themeAccentClasses } from "@/lib/theme-styles";
 import type { Alert, TreatmentSession } from "@/types";
 
 type OverviewPatient = {
@@ -56,53 +47,6 @@ type TreatmentOverviewGroup = {
   startedAt: string;
   patients: OverviewPatient[];
 };
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
-};
-
-function getSpeciesIcon(species?: string) {
-  const normalizedSpecies = species?.toLowerCase().trim();
-
-  switch (normalizedSpecies) {
-    case "dog":
-    case "canine":
-    case "cachorro":
-    case "cao":
-    case "cão":
-    case "canina":
-      return Dog;
-    case "cat":
-    case "feline":
-    case "gato":
-    case "felina":
-      return Cat;
-    case "bird":
-    case "avian":
-    case "ave":
-    case "aves":
-      return Bird;
-    case "fish":
-    case "peixe":
-      return Fish;
-    case "rabbit":
-    case "coelho":
-      return Rabbit;
-    default:
-      return PawPrint;
-  }
-}
 
 function getActiveAlerts(alerts: Alert[]) {
   return alerts.filter((alert) => alert.status === "active");
@@ -226,15 +170,15 @@ function OverviewSkeleton() {
     <div className="grid gap-4 md:grid-cols-2">
       {Array.from({ length: 6 }).map((_, index) => (
         <Card key={`overview-skeleton-${index + 1}`} className="min-h-80">
-          <CardHeader className="space-y-3">
-            <div className="h-5 w-1/2 animate-pulse rounded bg-muted/60" />
-            <div className="h-4 w-2/3 animate-pulse rounded bg-muted/50" />
+          <CardHeader className="gap-2">
+            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="h-4 w-2/3" />
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="flex flex-col gap-2">
             {Array.from({ length: 5 }).map((__, rowIndex) => (
-              <div
+              <Skeleton
                 key={`overview-skeleton-row-${rowIndex + 1}`}
-                className="h-14 animate-pulse rounded-2xl bg-muted/40"
+                className="h-14 rounded-lg"
               />
             ))}
           </CardContent>
@@ -315,12 +259,11 @@ export default function VisaoGeral() {
     <PageLayout
       title="Visão Geral"
       actions={
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-          <div className="flex h-12 w-full items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-4 sm:w-auto">
-            <Filter className="h-4 w-4 text-muted-foreground" />
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-4">
+          <div className="flex items-center gap-2">
             <Label
               htmlFor="overview-only-alerts"
-              className="text-xs text-muted-foreground"
+              className="text-[13px] font-medium text-muted-foreground"
             >
               Somente com alertas
             </Label>
@@ -335,14 +278,15 @@ export default function VisaoGeral() {
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Label
               htmlFor="overview-species"
-              className="text-xs text-muted-foreground"
+              className="text-[13px] font-medium text-muted-foreground"
             >
               Espécie
             </Label>
             <Select value={speciesFilter} onValueChange={setSpeciesFilter}>
               <SelectTrigger
                 id="overview-species"
-                className="w-full bg-background sm:min-w-44"
+                size="sm"
+                className="w-full sm:min-w-44"
               >
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
@@ -367,23 +311,19 @@ export default function VisaoGeral() {
         {isLoading ? <OverviewSkeleton /> : null}
 
         {!isLoading && !hasActiveData ? (
-          <Card className="border-dashed">
-            <CardContent className="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
-              <div
-                className={`rounded-2xl p-4 ${themeAccentClasses.neutral.icon}`}
-              >
-                <Activity className="h-8 w-8" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold">
-                  Nenhum tratamento ativo
-                </h2>
-                <p className="max-w-lg text-sm text-muted-foreground">
-                  Quando a clínica tiver sessões em andamento, elas aparecerão
-                  aqui agrupadas por modelo de tratamento.
-                </p>
-              </div>
-              <Button asChild>
+          <Card>
+            <CardContent className="flex min-h-64 flex-col items-center justify-center gap-2 text-center">
+              <span className="mb-1 grid size-12 place-items-center rounded-full bg-muted text-foreground">
+                <HeartPulseIcon size={20} />
+              </span>
+              <h2 className="text-base font-semibold">
+                Nenhum tratamento ativo
+              </h2>
+              <p className="max-w-lg text-sm text-muted-foreground">
+                Quando a clínica tiver sessões em andamento, elas aparecerão
+                aqui agrupadas por modelo de tratamento.
+              </p>
+              <Button asChild variant="cta" className="mt-2">
                 <Link to={clinicPath("/treatments/new")}>
                   Iniciar tratamento
                 </Link>
@@ -393,130 +333,121 @@ export default function VisaoGeral() {
         ) : null}
 
         {!isLoading && hasActiveData && filteredGroups.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
-              <div
-                className={`rounded-2xl p-4 ${themeAccentClasses.neutral.icon}`}
-              >
-                <Filter className="h-8 w-8" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold">
-                  Nenhum tratamento encontrado
-                </h2>
-                <p className="max-w-lg text-sm text-muted-foreground">
-                  Ajuste os filtros para ver sessões ativas de outras espécies
-                  ou incluir pets sem alertas.
-                </p>
-              </div>
+          <Card>
+            <CardContent className="flex min-h-64 flex-col items-center justify-center gap-2 text-center">
+              <span className="mb-1 grid size-12 place-items-center rounded-full bg-muted text-foreground">
+                <FilterIcon size={20} />
+              </span>
+              <h2 className="text-base font-semibold">
+                Nenhum tratamento encontrado
+              </h2>
+              <p className="max-w-lg text-sm text-muted-foreground">
+                Ajuste os filtros para ver sessões ativas de outras espécies ou
+                incluir pets sem alertas.
+              </p>
             </CardContent>
           </Card>
         ) : null}
 
         {!isLoading && filteredGroups.length > 0 ? (
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid gap-4 md:grid-cols-2"
-          >
+          <div className="grid gap-4 md:grid-cols-2">
             {filteredGroups.map((group) => (
-              <motion.div key={group.id} variants={item}>
-                <Card className="flex min-h-88 flex-col overflow-hidden">
-                  <CardHeader className="gap-4 border-b border-border/60 bg-muted/20">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <CardTitle className="text-xl">
-                          {group.treatmentName}
-                        </CardTitle>
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                          <p>Ativo desde {formatStartedAt(group.startedAt)}</p>
-                          <Badge variant="outline">
-                            {group.activePatientCount} pet
-                            {group.activePatientCount > 1 ? "s" : ""}
-                          </Badge>
-                          <Badge variant="outline">Sessões em andamento</Badge>
-                        </div>
-                      </div>
-                      {group.activeAlertCount > 0 ? (
-                        <Badge variant="destructive">
-                          {group.activeAlertCount} alerta
-                          {group.activeAlertCount > 1 ? "s" : ""}
+              <Card key={group.id} className="flex min-h-88 flex-col overflow-hidden">
+                <CardHeader className="gap-3 border-b border-border">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <CardTitle className="text-base font-semibold">
+                        {group.treatmentName}
+                      </CardTitle>
+                      <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+                        <p className="tabular-nums">
+                          Ativo desde {formatStartedAt(group.startedAt)}
+                        </p>
+                        <Badge variant="outline">
+                          {group.activePatientCount} pet
+                          {group.activePatientCount > 1 ? "s" : ""}
                         </Badge>
-                      ) : (
-                        <Badge variant="secondary">Sem alertas</Badge>
-                      )}
+                        <Badge variant="outline">Sessões em andamento</Badge>
+                      </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 pt-4">
-                    <div className="grid max-h-72 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
-                      {group.patients.map((patient) => {
-                        const SpeciesIcon = getSpeciesIcon(patient.species);
-
-                        return (
-                          <Link
-                            key={patient.sessionId}
-                            to={`/treatments/${patient.sessionId}`}
-                            className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-background p-3 transition-colors hover:border-primary/40 hover:bg-muted/30"
-                          >
-                            <div className="relative shrink-0">
-                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                                <SpeciesIcon className="h-5 w-5" />
-                              </div>
-                              {patient.hasAlert ? (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-background bg-destructive" />
-                                  </TooltipTrigger>
-                                  <TooltipContent
-                                    side="top"
-                                    sideOffset={8}
-                                    className="max-w-64 space-y-1 px-3 py-2 text-left"
-                                  >
-                                    <p className="font-medium">
-                                      {patient.alertCount} alerta
-                                      {patient.alertCount > 1 ? "s" : ""} ativo
-                                      {patient.alertCount > 1 ? "s" : ""}
-                                    </p>
-                                    {patient.latestAlertMessage ? (
-                                      <p className="text-[11px] leading-relaxed text-background/80">
-                                        {patient.latestAlertMessage}
-                                      </p>
-                                    ) : null}
-                                    {patient.latestAlertCreatedAt ? (
-                                      <p className="text-[10px] uppercase tracking-[0.08em] text-background/60">
-                                        {formatAlertTimestamp(
-                                          patient.latestAlertCreatedAt,
-                                        )}
-                                      </p>
-                                    ) : null}
-                                  </TooltipContent>
-                                </Tooltip>
-                              ) : null}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium leading-none transition-colors group-hover:text-primary">
-                                {patient.patientName}
-                              </p>
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                {patient.species || "Espécie não informada"}
-                              </p>
-                              {patient.hasAlert &&
-                              patient.latestAlertMessage ? (
-                                <p className="mt-1 truncate text-[11px] text-destructive/80">
-                                  {patient.latestAlertMessage}
+                    {group.activeAlertCount > 0 ? (
+                      <Badge variant="destructive">
+                        <span
+                          aria-hidden
+                          className="size-1.5 rounded-full bg-current"
+                        />
+                        {group.activeAlertCount} alerta
+                        {group.activeAlertCount > 1 ? "s" : ""}
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">Sem alertas</Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                    {group.patients.map((patient) => (
+                      <Link
+                        key={patient.sessionId}
+                        to={`/treatments/${patient.sessionId}`}
+                        className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-colors duration-150 hover:bg-muted"
+                      >
+                        <div className="relative shrink-0">
+                          <PetAvatar species={patient.species} className="size-9" />
+                          {patient.hasAlert ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span
+                                  aria-label="Paciente com alerta ativo"
+                                  className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-destructive ring-2 ring-card"
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                sideOffset={8}
+                                className="max-w-64 space-y-1 text-left"
+                              >
+                                <p className="font-semibold">
+                                  {patient.alertCount} alerta
+                                  {patient.alertCount > 1 ? "s" : ""} ativo
+                                  {patient.alertCount > 1 ? "s" : ""}
                                 </p>
-                              ) : null}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                                {patient.latestAlertMessage ? (
+                                  <p className="text-[11.5px] leading-relaxed opacity-85">
+                                    {patient.latestAlertMessage}
+                                  </p>
+                                ) : null}
+                                {patient.latestAlertCreatedAt ? (
+                                  <p className="text-[11px] tabular-nums opacity-70">
+                                    {formatAlertTimestamp(
+                                      patient.latestAlertCreatedAt,
+                                    )}
+                                  </p>
+                                ) : null}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : null}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13.5px] font-semibold">
+                            {patient.patientName}
+                          </p>
+                          <p className="text-[12.5px] text-muted-foreground">
+                            {patient.species || "Espécie não informada"}
+                          </p>
+                          {patient.hasAlert && patient.latestAlertMessage ? (
+                            <p className="mt-0.5 truncate text-xs font-medium text-destructive">
+                              {patient.latestAlertMessage}
+                            </p>
+                          ) : null}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
-          </motion.div>
+          </div>
         ) : null}
       </div>
     </PageLayout>

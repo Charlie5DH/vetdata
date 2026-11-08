@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { PatientVaccination } from "@/types";
 
@@ -175,15 +176,15 @@ export function VaccineRecordDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="patient">Paciente*</Label>
+        <div className="flex flex-col gap-3 py-1">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="patient">Paciente *</Label>
             <Select
               value={patientId}
               onValueChange={setPatientId}
               disabled={Boolean(fixedPatientId) || isEdit}
             >
-              <SelectTrigger id="patient">
+              <SelectTrigger id="patient" className="w-full">
                 <SelectValue placeholder="Selecione um paciente..." />
               </SelectTrigger>
               <SelectContent>
@@ -196,10 +197,10 @@ export function VaccineRecordDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="vaccine">Vacina*</Label>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="vaccine">Vacina *</Label>
             <Select value={vaccineId} onValueChange={setVaccineId}>
-              <SelectTrigger id="vaccine">
+              <SelectTrigger id="vaccine" className="w-full">
                 <SelectValue placeholder="Selecione uma vacina..." />
               </SelectTrigger>
               <SelectContent>
@@ -217,29 +218,31 @@ export function VaccineRecordDialog({
             ) : null}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="applied_at">Data de aplicação*</Label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="applied_at">Data de aplicação *</Label>
               <Input
                 id="applied_at"
                 type="datetime-local"
                 value={appliedAt}
                 onChange={(e) => setAppliedAt(e.target.value)}
+                className="tabular-nums"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="next_due_at">Próximo reforço</Label>
               <Input
                 id="next_due_at"
                 type="datetime-local"
                 value={nextDueAt}
                 onChange={(e) => setNextDueAt(e.target.value)}
+                className="tabular-nums"
               />
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="dose_number">Dose nº</Label>
               <Input
                 id="dose_number"
@@ -247,17 +250,19 @@ export function VaccineRecordDialog({
                 min={1}
                 value={doseNumber}
                 onChange={(e) => setDoseNumber(e.target.value)}
+                className="tabular-nums"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="batch">Lote</Label>
               <Input
                 id="batch"
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}
+                className="font-mono text-sm"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="manufacturer">Fabricante</Label>
               <Input
                 id="manufacturer"
@@ -267,8 +272,8 @@ export function VaccineRecordDialog({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="applied_by">Aplicado por</Label>
               <Input
                 id="applied_by"
@@ -277,10 +282,10 @@ export function VaccineRecordDialog({
                 placeholder="Nome do veterinário"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="status">Status</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -292,7 +297,7 @@ export function VaccineRecordDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="notes">Observações</Label>
             <Textarea
               id="notes"
@@ -303,10 +308,15 @@ export function VaccineRecordDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+          >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit}>
+          <Button variant="cta" onClick={handleSubmit} disabled={!canSubmit}>
+            {isPending ? <Spinner /> : null}
             {isEdit ? "Salvar alterações" : "Registrar vacina"}
           </Button>
         </DialogFooter>

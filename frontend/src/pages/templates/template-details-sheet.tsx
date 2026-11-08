@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { IconEdit, IconLoader2, IconX } from "@tabler/icons-react";
+import { EditIcon, SearchIcon, XIcon } from "@/components/icons/vetdata-icons";
 import { toast } from "sonner";
 
 import { useMeasures, useUpdateTemplate } from "@/api/templates";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Sheet,
   SheetContent,
@@ -20,10 +21,10 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Template } from "@/types/template";
 
 const DATA_TYPE_LABELS: Record<string, string> = {
-  number: "Number",
-  text: "Text",
-  boolean: "Boolean",
-  select: "Select",
+  number: "Número",
+  text: "Texto",
+  boolean: "Sim/Não",
+  select: "Seleção",
 };
 
 type ThresholdDraft = {
@@ -201,7 +202,7 @@ function TemplateDetailsSheetEditor({
         <SheetHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <SheetTitle className="text-xl">
+              <SheetTitle>
                 {isEditing ? "Editar modelo" : template.name}
               </SheetTitle>
               {!isEditing && template.description ? (
@@ -211,26 +212,24 @@ function TemplateDetailsSheetEditor({
             <div className="flex items-center gap-2">
               {isEditing ? (
                 <>
-                  <Button variant="outline" onClick={resetEditorState}>
-                    <IconX data-icon="inline-start" />
+                  <Button variant="ghost" onClick={resetEditorState}>
+                    <XIcon data-icon="inline-start" />
                     Cancelar
                   </Button>
                   <Button
+                    variant="cta"
                     onClick={handleSave}
                     disabled={updateTemplate.isPending}
                   >
                     {updateTemplate.isPending ? (
-                      <IconLoader2
-                        data-icon="inline-start"
-                        className="animate-spin"
-                      />
+                      <Spinner data-icon="inline-start" />
                     ) : null}
                     Salvar
                   </Button>
                 </>
               ) : (
                 <Button variant="outline" onClick={() => setIsEditing(true)}>
-                  <IconEdit data-icon="inline-start" />
+                  <EditIcon data-icon="inline-start" />
                   Editar
                 </Button>
               )}
@@ -238,10 +237,10 @@ function TemplateDetailsSheetEditor({
           </div>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 flex flex-col gap-6">
           {isEditing ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="template-name">Nome</Label>
                 <Input
                   id="template-name"
@@ -249,7 +248,7 @@ function TemplateDetailsSheetEditor({
                   onChange={(event) => setName(event.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="template-description">Descrição</Label>
                 <Textarea
                   id="template-description"
@@ -257,19 +256,26 @@ function TemplateDetailsSheetEditor({
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="template-search">Medidas associadas</Label>
-                <Input
-                  id="template-search"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Buscar medidas..."
-                />
+                <div className="relative">
+                  <SearchIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="template-search"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Buscar medidas..."
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <ScrollArea className="h-80 rounded-md border p-4">
-                <div className="space-y-4">
+              <ScrollArea className="h-80 rounded-xl border border-border p-2">
+                <div className="flex flex-col gap-1.5">
                   {filteredMeasures.map((measure) => (
-                    <div key={measure.id} className="rounded-md border p-3">
+                    <div
+                      key={measure.id}
+                      className="rounded-lg border border-border bg-card px-3 py-2.5"
+                    >
                       <div className="flex items-start gap-3">
                         <Checkbox
                           id={`template-edit-${measure.id}`}
@@ -281,11 +287,11 @@ function TemplateDetailsSheetEditor({
                         <div className="flex-1">
                           <Label
                             htmlFor={`template-edit-${measure.id}`}
-                            className="cursor-pointer text-sm font-normal"
+                            className="cursor-pointer text-sm font-semibold"
                           >
                             {measure.name}
                             {measure.unit ? (
-                              <span className="ml-1 text-muted-foreground">
+                              <span className="ml-1 font-normal text-muted-foreground">
                                 ({measure.unit})
                               </span>
                             ) : null}
@@ -302,51 +308,71 @@ function TemplateDetailsSheetEditor({
                       {selectedMeasureIds.includes(measure.id) &&
                       measure.data_type === "number" ? (
                         <div className="mt-3 grid grid-cols-1 gap-3 pl-7 sm:grid-cols-2">
-                          <div className="space-y-2">
+                          <div className="flex flex-col gap-1.5">
                             <Label
                               htmlFor={`template-edit-${measure.id}-lower`}
                             >
                               Limite inferior do modelo
                             </Label>
-                            <Input
-                              id={`template-edit-${measure.id}-lower`}
-                              type="number"
-                              inputMode="decimal"
-                              value={thresholds[measure.id]?.lower_limit || ""}
-                              onChange={(event) =>
-                                updateThreshold(
-                                  measure.id,
-                                  "lower_limit",
-                                  event.target.value,
-                                )
-                              }
-                              placeholder={getLimitPlaceholder(
-                                measure.lower_limit,
-                              )}
-                            />
+                            <div className="relative">
+                              <Input
+                                id={`template-edit-${measure.id}-lower`}
+                                type="number"
+                                inputMode="decimal"
+                                value={
+                                  thresholds[measure.id]?.lower_limit || ""
+                                }
+                                onChange={(event) =>
+                                  updateThreshold(
+                                    measure.id,
+                                    "lower_limit",
+                                    event.target.value,
+                                  )
+                                }
+                                placeholder={getLimitPlaceholder(
+                                  measure.lower_limit,
+                                )}
+                                className={measure.unit ? "pr-14" : undefined}
+                              />
+                              {measure.unit ? (
+                                <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+                                  {measure.unit}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
-                          <div className="space-y-2">
+                          <div className="flex flex-col gap-1.5">
                             <Label
                               htmlFor={`template-edit-${measure.id}-upper`}
                             >
                               Limite superior do modelo
                             </Label>
-                            <Input
-                              id={`template-edit-${measure.id}-upper`}
-                              type="number"
-                              inputMode="decimal"
-                              value={thresholds[measure.id]?.upper_limit || ""}
-                              onChange={(event) =>
-                                updateThreshold(
-                                  measure.id,
-                                  "upper_limit",
-                                  event.target.value,
-                                )
-                              }
-                              placeholder={getLimitPlaceholder(
-                                measure.upper_limit,
-                              )}
-                            />
+                            <div className="relative">
+                              <Input
+                                id={`template-edit-${measure.id}-upper`}
+                                type="number"
+                                inputMode="decimal"
+                                value={
+                                  thresholds[measure.id]?.upper_limit || ""
+                                }
+                                onChange={(event) =>
+                                  updateThreshold(
+                                    measure.id,
+                                    "upper_limit",
+                                    event.target.value,
+                                  )
+                                }
+                                placeholder={getLimitPlaceholder(
+                                  measure.upper_limit,
+                                )}
+                                className={measure.unit ? "pr-14" : undefined}
+                              />
+                              {measure.unit ? (
+                                <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
+                                  {measure.unit}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                       ) : null}
@@ -358,12 +384,14 @@ function TemplateDetailsSheetEditor({
           ) : null}
 
           <div>
-            <h3 className="mb-3 text-sm font-medium">Medidas Associadas</h3>
+            <h3 className="mb-3 text-[15px] font-semibold">
+              Medidas associadas
+            </h3>
             <ScrollArea
               className="pr-4"
               style={{ height: "calc(100vh - 200px)" }}
             >
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
                 {!template.template_measures ||
                 template.template_measures.length === 0 ? (
                   <p className="col-span-full text-sm text-muted-foreground">
@@ -373,12 +401,12 @@ function TemplateDetailsSheetEditor({
                   sortedTemplateMeasures.map((templateMeasure) => (
                     <div
                       key={templateMeasure.id}
-                      className="flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm"
+                      className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2.5"
                     >
-                      <span className="font-medium">
+                      <span className="text-sm font-semibold">
                         {templateMeasure.measure?.name || "Medida desconhecida"}
                       </span>
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         {templateMeasure.measure?.unit ? (
                           <span>Unidade: {templateMeasure.measure.unit}</span>
                         ) : null}
@@ -392,14 +420,20 @@ function TemplateDetailsSheetEditor({
                         </div>
                         {templateMeasure.lower_limit !== null &&
                         templateMeasure.lower_limit !== undefined ? (
-                          <span>
+                          <span className="tabular-nums">
                             Limite inferior: {templateMeasure.lower_limit}
+                            {templateMeasure.measure?.unit
+                              ? ` ${templateMeasure.measure.unit}`
+                              : ""}
                           </span>
                         ) : null}
                         {templateMeasure.upper_limit !== null &&
                         templateMeasure.upper_limit !== undefined ? (
-                          <span>
+                          <span className="tabular-nums">
                             Limite superior: {templateMeasure.upper_limit}
+                            {templateMeasure.measure?.unit
+                              ? ` ${templateMeasure.measure.unit}`
+                              : ""}
                           </span>
                         ) : null}
                       </div>
@@ -412,8 +446,8 @@ function TemplateDetailsSheetEditor({
 
           <Separator />
 
-          <div className="text-xs text-muted-foreground">
-            Criado em: {new Date(template.created_at).toLocaleDateString()}
+          <div className="text-xs tabular-nums text-muted-foreground">
+            Criado em: {new Date(template.created_at).toLocaleDateString("pt-BR")}
           </div>
         </div>
       </SheetContent>

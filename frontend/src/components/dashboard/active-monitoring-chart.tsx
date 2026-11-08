@@ -6,6 +6,7 @@ import {
   Cell,
   ComposedChart,
   Line,
+  ReferenceArea,
   ReferenceLine,
   XAxis,
   YAxis,
@@ -78,6 +79,7 @@ type ChartRow = {
 type DotProps = {
   cx?: number;
   cy?: number;
+  index?: number;
   payload?: ChartRow;
 };
 
@@ -433,12 +435,12 @@ function ActiveMonitoringTooltip({
   }
 
   return (
-    <div className="grid min-w-[16rem] gap-2 rounded-lg border border-border/60 bg-background px-3 py-2 text-xs shadow-xl">
+    <div className="grid min-w-[16rem] gap-2 rounded-lg bg-primary px-3 py-2 text-xs leading-tight text-primary-foreground shadow-md">
       <div className="space-y-0.5">
-        <p className="font-medium text-foreground">{point.patientName}</p>
-        <p className="text-muted-foreground">{point.templateName}</p>
+        <p className="font-semibold text-primary-foreground">{point.patientName}</p>
+        <p className="text-forest-300">{point.templateName}</p>
       </div>
-      <div className="grid gap-1 text-muted-foreground">
+      <div className="grid gap-1 text-forest-200">
         {payload.map((item) => {
           const metricId = `${item.dataKey ?? ""}`;
           const metric = metricsById.get(metricId);
@@ -455,7 +457,7 @@ function ActiveMonitoringTooltip({
               <span className="flex items-center gap-2">
                 {point[`__alert__${metricId}`] ? (
                   <span
-                    className="size-2 rounded-full"
+                    className="size-2 rounded-full outline outline-1 outline-primary-foreground/40"
                     style={{ backgroundColor: ALERT_COLOR }}
                   />
                 ) : null}
@@ -463,21 +465,21 @@ function ActiveMonitoringTooltip({
                 {point[`__alert__${metricId}`] ? (
                   <Badge
                     variant="destructive"
-                    className="ml-1 border-destructive/30"
+                    className="ml-1 h-[18px] px-1.5 text-[11px]"
                   >
                     Alerta
                   </Badge>
                 ) : null}
               </span>
-              <span className="font-medium text-foreground">
+              <span className="font-semibold tabular-nums text-primary-foreground">
                 {formatMetricValue(item.value, metric.unit)}
               </span>
             </div>
           );
         })}
         <div className="flex items-center justify-between gap-4">
-          <span>Horário</span>
-          <span className="text-foreground">
+          <span className="text-forest-300">Horário</span>
+          <span className="tabular-nums text-primary-foreground">
             {tooltipDateFormatter.format(new Date(point.loggedAt))}
           </span>
         </div>
@@ -494,9 +496,9 @@ function ChartEmptyState({
   description: string;
 }) {
   return (
-    <div className="flex h-80 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/15 px-6 text-center">
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+    <div className="flex h-80 flex-col items-center justify-center rounded-xl border border-dashed border-input bg-card px-6 text-center">
+      <p className="text-base font-semibold text-foreground">{title}</p>
+      <p className="mt-1.5 max-w-xl text-[13.5px] text-muted-foreground">
         {description}
       </p>
     </div>
@@ -573,6 +575,26 @@ export function ActiveMonitoringChart({
     [alerts, selectedMetrics],
   );
 
+  // Normal range band (DESIGN.md §10) when a metric has exactly one lower and one upper limit
+  const rangeBands = React.useMemo(() => {
+    const limits = new Map<string, { lower: number[]; upper: number[] }>();
+    for (const threshold of thresholdLines) {
+      const entry = limits.get(threshold.metricId) ?? { lower: [], upper: [] };
+      if (threshold.thresholdType === "lower") {
+        entry.lower.push(threshold.thresholdValue);
+      } else if (threshold.thresholdType === "upper") {
+        entry.upper.push(threshold.thresholdValue);
+      }
+      limits.set(threshold.metricId, entry);
+    }
+
+    return Array.from(limits.entries()).flatMap(([metricId, { lower, upper }]) =>
+      lower.length === 1 && upper.length === 1 && lower[0] < upper[0]
+        ? [{ metricId, lower: lower[0], upper: upper[0] }]
+        : [],
+    );
+  }, [thresholdLines]);
+
   const chartConfig = React.useMemo<ChartConfig>(
     () =>
       Object.fromEntries(
@@ -596,7 +618,7 @@ export function ActiveMonitoringChart({
   );
 
   if (isLoading || isLoadingAlerts) {
-    return <div className="h-96 animate-pulse rounded-xl bg-muted/40" />;
+    return <div className="h-96 animate-pulse rounded-xl bg-border motion-reduce:animate-none" />;
   }
 
   if (!activeSessionsCount) {
@@ -669,17 +691,31 @@ export function ActiveMonitoringChart({
 
   const renderSeries = (metric: MetricSeries, index: number) => {
     const color = METRIC_COLORS[index % METRIC_COLORS.length];
+    // Last reading of the series: larger end dot (line/area), lemon bar when it is the only series
+    const lastRowId = chartData
+      .filter((row) => typeof row[metric.id] === "number")
+      .at(-1)?.rowId;
     const renderDot = (props: DotProps, radius: number) => {
       const { cx, cy, payload } = props;
       const hasAlert = Boolean(payload?.[`__alert__${metric.id}`]);
+      const isEndDot = radius < 4.5 && payload?.rowId === lastRowId;
+      const hasRing = radius >= 4.5 || isEndDot;
 
       return (
         <circle
+          key={`dot-${radius}-${props.index ?? payload?.rowId ?? 0}`}
           cx={typeof cx === "number" ? cx : 0}
           cy={typeof cy === "number" ? cy : 0}
-          r={typeof cx === "number" && typeof cy === "number" ? radius : 0}
+          r={
+            typeof cx === "number" && typeof cy === "number"
+              ? isEndDot
+                ? 4.5
+                : radius
+              : 0
+          }
           fill={hasAlert ? ALERT_COLOR : color}
-          strokeWidth={0}
+          stroke={hasRing ? "var(--card)" : "none"}
+          strokeWidth={hasRing ? 2 : 0}
         />
       );
     };
@@ -692,30 +728,44 @@ export function ActiveMonitoringChart({
           type="monotone"
           stroke={color}
           fill={color}
-          fillOpacity={0.18}
+          fillOpacity={0.1}
           strokeWidth={2}
-          dot={(props: DotProps) => renderDot(props, 4)}
-          activeDot={(props: DotProps) => renderDot(props, 6)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          dot={(props: DotProps) => renderDot(props, 3)}
+          activeDot={(props: DotProps) => renderDot(props, 4.5)}
           connectNulls
         />
       );
     }
 
     if (chartType === "bar") {
+      const highlightLast = selectedMetrics.length === 1;
+
       return (
         <Bar
           key={metric.id}
           dataKey={metric.id}
           fill={color}
-          radius={[6, 6, 0, 0]}
+          radius={[4, 4, 0, 0]}
           maxBarSize={28}
         >
-          {chartData.map((row) => (
-            <Cell
-              key={`${row.rowId}:${metric.id}`}
-              fill={row[`__alert__${metric.id}`] ? ALERT_COLOR : color}
-            />
-          ))}
+          {chartData.map((row) => {
+            const hasAlert = Boolean(row[`__alert__${metric.id}`]);
+            const isCurrent =
+              highlightLast && !hasAlert && row.rowId === lastRowId;
+
+            return (
+              <Cell
+                key={`${row.rowId}:${metric.id}`}
+                fill={
+                  hasAlert ? ALERT_COLOR : isCurrent ? "var(--chart-4)" : color
+                }
+                stroke={isCurrent ? "var(--color-lemon-600)" : undefined}
+                strokeWidth={isCurrent ? 1 : 0}
+              />
+            );
+          })}
         </Bar>
       );
     }
@@ -727,8 +777,10 @@ export function ActiveMonitoringChart({
         type="linear"
         stroke={color}
         strokeWidth={2}
-        dot={(props: DotProps) => renderDot(props, 4)}
-        activeDot={(props: DotProps) => renderDot(props, 6)}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        dot={(props: DotProps) => renderDot(props, 3)}
+        activeDot={(props: DotProps) => renderDot(props, 4.5)}
         connectNulls
       />
     );
@@ -754,14 +806,25 @@ export function ActiveMonitoringChart({
     chartBody = (
       <ChartContainer config={chartConfig} className="h-96 w-full">
         <ComposedChart data={chartData} margin={{ left: 8, right: 16, top: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          {rangeBands.map((band) => (
+            <ReferenceArea
+              key={`range:${band.metricId}`}
+              y1={band.lower}
+              y2={band.upper}
+              fill="var(--range)"
+              fillOpacity={1}
+              stroke="none"
+              ifOverflow="extendDomain"
+            />
+          ))}
+          <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="timestamp"
             type="number"
             domain={["dataMin", "dataMax"]}
             tickFormatter={(value) => axisDateFormatter.format(new Date(value))}
             tickLine={false}
-            axisLine={false}
+            axisLine={{ stroke: "var(--input)" }}
             tickMargin={8}
             minTickGap={32}
           />
@@ -771,7 +834,8 @@ export function ActiveMonitoringChart({
               key={`${threshold.metricId}:${threshold.thresholdType}:${threshold.thresholdValue}`}
               y={threshold.thresholdValue}
               stroke={ALERT_COLOR}
-              strokeDasharray="6 6"
+              strokeWidth={1}
+              strokeDasharray="4 4"
               ifOverflow="extendDomain"
               label={{
                 value:
@@ -785,7 +849,7 @@ export function ActiveMonitoringChart({
             />
           ))}
           <ChartTooltip
-            cursor={{ stroke: "var(--border)", strokeDasharray: "4 4" }}
+            cursor={{ stroke: "var(--input)" }}
             content={<ActiveMonitoringTooltip metricsById={metricsById} />}
           />
           {selectedMetrics.map((metric, index) => renderSeries(metric, index))}
@@ -848,32 +912,32 @@ export function ActiveMonitoringChart({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-[13px] text-muted-foreground">
             Pacientes monitorados
           </p>
-          <p className="mt-2 text-2xl font-semibold">{patientCount}</p>
+          <p className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] tabular-nums">{patientCount}</p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-[13px] text-muted-foreground">
             Sessões com a métrica
           </p>
-          <p className="mt-2 text-2xl font-semibold">{sessionCount}</p>
+          <p className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] tabular-nums">{sessionCount}</p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-[13px] text-muted-foreground">
             Última leitura
           </p>
-          <p className="mt-2 text-lg font-semibold">{latestReading}</p>
+          <p className="mt-1.5 text-lg font-semibold tabular-nums">{latestReading}</p>
           {latestMetricPoint ? (
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground">
               <span>Medida: {latestMetricPoint.metric.name}</span>
               {latestMetricHasAlert ? (
                 <Badge variant="destructive">Alerta</Badge>
               ) : null}
             </div>
           ) : null}
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-[12.5px] text-muted-foreground tabular-nums">
             {latestMetricPoint
               ? `${latestMetricPoint.point.patientName} • ${tooltipDateFormatter.format(
                   new Date(latestMetricPoint.point.loggedAt),

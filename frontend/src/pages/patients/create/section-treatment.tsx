@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { CheckIcon, ChevUdIcon } from "@/components/icons/vetdata-icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,13 +64,13 @@ function SearchableTemplateSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="h-12 w-full justify-between px-3 font-normal"
+          className="w-full justify-between font-normal"
         >
           <span className="truncate">
             {selectedTemplate?.name ||
               "Selecione um modelo para iniciar imediatamente"}
           </span>
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+          <ChevUdIcon className="ml-2 shrink-0 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -86,9 +86,9 @@ function SearchableTemplateSelect({
                 value="Nenhum"
                 onSelect={() => handleSelect(NO_TEMPLATE_VALUE)}
               >
-                <Check
+                <CheckIcon
                   className={cn(
-                    "size-4",
+                    "size-3.5",
                     selectedValue === NO_TEMPLATE_VALUE
                       ? "opacity-100"
                       : "opacity-0",
@@ -102,9 +102,9 @@ function SearchableTemplateSelect({
                   value={`${template.name} ${template.description ?? ""}`}
                   onSelect={() => handleSelect(String(template.id))}
                 >
-                  <Check
+                  <CheckIcon
                     className={cn(
-                      "size-4",
+                      "size-3.5",
                       selectedValue === String(template.id)
                         ? "opacity-100"
                         : "opacity-0",
@@ -141,7 +141,11 @@ export function SectionTreatment({ form, step }: SectionTreatmentProps) {
     <Card id="tratamento">
       <CardHeader>
         <CardTitle>
-          {step && <span className="mr-2 text-muted-foreground">{step}.</span>}
+          {step && (
+            <span className="mr-2 font-medium text-muted-foreground tabular-nums">
+              {step}.
+            </span>
+          )}
           Tratamento
         </CardTitle>
         <CardDescription>
@@ -149,8 +153,8 @@ export function SectionTreatment({ form, step }: SectionTreatmentProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="motive">Motivo</Label>
             <Input
               id="motive"
@@ -159,7 +163,7 @@ export function SectionTreatment({ form, step }: SectionTreatmentProps) {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="notes">Notas</Label>
             <Textarea
               id="notes"
@@ -168,8 +172,8 @@ export function SectionTreatment({ form, step }: SectionTreatmentProps) {
             />
           </div>
 
-          <div className="space-y-2 border-t pt-4">
-            <Label htmlFor="template_id">Iniciar Tratamento (Opcional)</Label>
+          <div className="mt-1 flex flex-col gap-1.5 border-t border-border pt-4">
+            <Label htmlFor="template_id">Iniciar tratamento (opcional)</Label>
             <Controller
               name="template_id"
               control={control}

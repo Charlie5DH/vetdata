@@ -11,8 +11,7 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { motion, AnimatePresence } from "framer-motion";
-import { IconAlertTriangle, IconPlus } from "@tabler/icons-react";
+import { AlertIcon, PlusIcon } from "@/components/icons/vetdata-icons";
 
 import {
   useCreateCatalogVaccine,
@@ -34,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -100,13 +100,9 @@ export default function VaccineCatalog() {
 
   if (isLoading) {
     return (
-      <PageLayout title="Catálogo de Vacinas">
-        <div className="flex items-center justify-center h-full">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-8 w-8 border-b-2 border-primary"
-          />
+      <PageLayout title="Catálogo de vacinas">
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <Spinner className="size-6" />
         </div>
       </PageLayout>
     );
@@ -114,89 +110,77 @@ export default function VaccineCatalog() {
 
   if (error) {
     return (
-      <PageLayout title="Catálogo de Vacinas">
-        <div className="text-destructive">Erro ao carregar catálogo de vacinas</div>
+      <PageLayout title="Catálogo de vacinas">
+        <div className="rounded-lg border border-border bg-destructive-soft px-4 py-3 text-sm text-destructive">
+          Erro ao carregar catálogo de vacinas.
+        </div>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Catálogo de Vacinas">
-      <div className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <DataTableToolbar
-            table={table}
-            searchColumn="name"
-            searchPlaceholder="Buscar vacinas..."
-            rightExtra={
-              <Button onClick={() => setCreateOpen(true)}>
-                <IconPlus className="mr-2 h-4 w-4" />
-                Vacina
-              </Button>
-            }
-          />
-        </motion.div>
+    <PageLayout
+      title="Catálogo de vacinas"
+      actions={
+        <Button variant="cta" onClick={() => setCreateOpen(true)}>
+          <PlusIcon />
+          Nova vacina
+        </Button>
+      }
+    >
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <DataTableToolbar
+          table={table}
+          searchColumn="name"
+          searchPlaceholder="Buscar vacinas..."
+        />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-md border bg-card"
-        >
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence mode="wait">
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row, index) => (
-                    <motion.tr
-                      key={row.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                      className="group hover:bg-muted/50 data-[state=selected]:bg-muted"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </motion.tr>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      Nenhum resultado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-        </motion.div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Nenhuma vacina encontrada.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -273,7 +257,7 @@ export default function VaccineCatalog() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogMedia>
-              <IconAlertTriangle />
+              <AlertIcon />
             </AlertDialogMedia>
             <AlertDialogTitle>Excluir vacina</AlertDialogTitle>
             <AlertDialogDescription>

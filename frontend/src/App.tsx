@@ -8,7 +8,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import ClinicProfilePage from "@/pages/clinic/ClinicProfilePage";
 import ClinicSetupPage from "@/pages/clinic/ClinicSetupPage";
 import ClinicTeamPage from "@/pages/clinic/ClinicTeamPage";
-import Customization from "@/pages/Customization";
 import Dashboard from "@/pages/Dashboard";
 import MeasureCreate from "@/pages/MeasureCreate";
 import Measures from "@/pages/Measures";
@@ -67,10 +66,6 @@ function AuthenticatedApp() {
                   <Route
                     path="/:clinicSlug/team"
                     element={<ClinicTeamPage />}
-                  />
-                  <Route
-                    path="/:clinicSlug/customization"
-                    element={<Customization />}
                   />
                   <Route path="/:clinicSlug/perfil/*" element={<Profile />} />
                   <Route path="/:clinicSlug/patients" element={<Patients />} />

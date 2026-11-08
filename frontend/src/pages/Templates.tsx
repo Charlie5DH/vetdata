@@ -24,13 +24,13 @@ import { DataTableToolbar } from "@/components/table/data-table-toolbar";
 import { columns } from "./templates/columns";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconPlus,
-} from "@tabler/icons-react";
+  ChevLIcon,
+  ChevRIcon,
+  PlusIcon,
+} from "@/components/icons/vetdata-icons";
+import { Spinner } from "@/components/ui/spinner";
 import { TemplateCreateDialog } from "./templates/template-create-dialog";
 import { TemplateDetailsSheet } from "./templates/template-details-sheet";
 import type { Template } from "@/types/template";
@@ -85,12 +85,8 @@ export default function Templates() {
   if (isLoading) {
     return (
       <PageLayout title="Modelos">
-        <div className="flex items-center justify-center h-full">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-8 w-8 border-b-2 border-primary"
-          />
+        <div className="flex h-full items-center justify-center">
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       </PageLayout>
     );
@@ -99,7 +95,9 @@ export default function Templates() {
   if (error) {
     return (
       <PageLayout title="Modelos">
-        <div className="text-destructive">Erro ao carregar modelos</div>
+        <div className="rounded-xl border border-border bg-card p-5 text-sm text-destructive">
+          Erro ao carregar modelos. Recarregue a página para tentar de novo.
+        </div>
       </PageLayout>
     );
   }
@@ -109,105 +107,96 @@ export default function Templates() {
       title="Modelos"
       actions={
         <TemplateCreateDialog>
-          <Button>
-            <IconPlus className="mr-2 h-4 w-4" />
-            Criar Modelo
+          <Button variant="cta">
+            <PlusIcon />
+            Novo modelo
           </Button>
         </TemplateCreateDialog>
       }
     >
-      <div className="space-y-4">
-        <TemplateDetailsSheet
-          template={selectedTemplate}
-          open={detailsOpen}
-          onOpenChange={setDetailsOpen}
+      <TemplateDetailsSheet
+        template={selectedTemplate}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        className="overflow-hidden rounded-xl border border-border bg-card"
+      >
+        <DataTableToolbar
+          table={table}
+          searchColumn="name"
+          searchPlaceholder="Buscar modelos..."
         />
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <DataTableToolbar
-            table={table}
-            searchColumn="name"
-            searchPlaceholder="Buscar modelos..."
-          />
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-md border bg-card"
-        >
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence mode="wait">
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row, index) => (
+                  <motion.tr
+                    key={row.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, delay: index * 0.02 }}
+                    data-state={row.getIsSelected() ? "selected" : undefined}
+                    className="group cursor-pointer border-b border-border transition-colors hover:bg-background data-[state=selected]:bg-lemon-100"
+                    onClick={() => handleRowClick(row.original)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </motion.tr>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-sm text-muted-foreground"
+                  >
+                    Nenhum modelo encontrado.
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence mode="wait">
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row, index) => (
-                    <motion.tr
-                      key={row.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                      className="group hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer"
-                      onClick={() => handleRowClick(row.original)}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </motion.tr>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      Nenhum resultado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-        </motion.div>
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+        <div className="flex flex-col gap-3 border-t border-border px-4 py-2.5 text-[12.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div className="hidden flex-1 tabular-nums lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:gap-4 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              <Label
+                htmlFor="rows-per-page"
+                className="text-[12.5px] font-normal text-muted-foreground"
+              >
                 Linhas por página
               </Label>
               <Select
@@ -230,54 +219,53 @@ export default function Templates() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
+            <div className="flex w-fit items-center justify-center tabular-nums">
               Página {table.getState().pagination.pageIndex + 1} de{" "}
               {table.getPageCount()}
             </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <div className="ml-auto flex items-center gap-1 lg:ml-0">
               <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
+                variant="ghost"
+                size="icon-sm"
+                className="hidden lg:flex"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
                 <span className="sr-only">Ir para a primeira página</span>
-                <IconChevronsLeft className="h-4 w-4" />
+                <ChevronsLeft />
               </Button>
               <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
                 <span className="sr-only">Ir para a página anterior</span>
-                <IconChevronLeft className="h-4 w-4" />
+                <ChevLIcon />
               </Button>
               <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
                 <span className="sr-only">Ir para a próxima página</span>
-                <IconChevronRight className="h-4 w-4" />
+                <ChevRIcon />
               </Button>
               <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
+                variant="ghost"
+                size="icon-sm"
+                className="hidden lg:flex"
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
                 <span className="sr-only">Ir para a última página</span>
-                <IconChevronsRight className="h-4 w-4" />
+                <ChevronsRight />
               </Button>
             </div>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </PageLayout>
   );
 }

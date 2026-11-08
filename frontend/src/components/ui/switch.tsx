@@ -15,14 +15,14 @@ function Switch({
       data-slot="switch"
       data-size={size}
       className={cn(
-        "data-checked:bg-primary data-unchecked:bg-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 dark:data-unchecked:bg-input/80 shrink-0 rounded-full border-[length:var(--app-border-width)] border-transparent focus-visible:ring-[3px] aria-invalid:ring-[3px] data-[size=default]:h-(--app-switch-height) data-[size=default]:w-(--app-switch-width) data-[size=sm]:h-(--app-switch-height-sm) data-[size=sm]:w-(--app-switch-width-sm) peer group/switch relative inline-flex items-center transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        "peer group/switch relative inline-flex shrink-0 items-center rounded-full outline-none transition-colors duration-200 ease-out after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:ring-[3px] focus-visible:ring-forest-900/12 data-checked:bg-primary data-unchecked:bg-input aria-invalid:ring-[3px] aria-invalid:ring-destructive/12 data-[size=default]:h-5 data-[size=default]:w-9 data-[size=sm]:h-4 data-[size=sm]:w-7 disabled:cursor-not-allowed disabled:bg-cream-300",
         className,
       )}
       {...props}
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
-        className="bg-background dark:data-unchecked:bg-foreground dark:data-checked:bg-primary-foreground rounded-full group-data-[size=default]/switch:size-(--app-switch-thumb-size) group-data-[size=sm]/switch:size-(--app-switch-thumb-size-sm) group-data-[size=default]/switch:data-checked:translate-x-(--app-switch-translate-x) group-data-[size=sm]/switch:data-checked:translate-x-(--app-switch-translate-x-sm) group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0 pointer-events-none block ring-0 transition-transform"
+        className="pointer-events-none block translate-x-0.5 rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ease-out group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[18px] group-data-[size=sm]/switch:data-checked:translate-x-[14px]"
       />
     </SwitchPrimitive.Root>
   );

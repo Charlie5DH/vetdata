@@ -1,11 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import {
-  BadgeCheckIcon,
-  ChevronsUpDownIcon,
-  LogOutIcon,
-  Settings2Icon,
-} from "lucide-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -21,6 +14,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ChevUdIcon, LogoutIcon, OkIcon } from "@/components/icons/vetdata-icons";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useCurrentUser } from "@/api/auth";
 import { useClinicPath } from "@/lib/clinic-routes";
@@ -49,62 +43,64 @@ export function NavUser() {
   };
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="mt-2 border-t border-sidebar-border pt-2.5">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="gap-2.5 rounded-xl px-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="size-8 rounded-full">
                 <AvatarImage src={avatarUrl} alt={displayName} />
-                <AvatarFallback className="rounded-lg">
+                <AvatarFallback className="rounded-full bg-mint-300 text-xs font-semibold text-forest-900">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="truncate text-xs">{email}</span>
+              <div className="grid flex-1 text-left leading-tight">
+                <span className="truncate text-[13px] font-semibold text-sidebar-accent-foreground">
+                  {displayName}
+                </span>
+                <span className="truncate text-[11.5px] text-sidebar-foreground">
+                  {email}
+                </span>
               </div>
-              <ChevronsUpDownIcon className="ml-auto size-4" />
+              <ChevUdIcon size={14} className="ml-auto size-3.5!" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+            <DropdownMenuLabel className="p-0 text-sm font-normal normal-case tracking-normal text-foreground">
+              <div className="flex items-center gap-2.5 px-1 py-1.5 text-left">
+                <Avatar className="size-8 rounded-full">
                   <AvatarImage src={avatarUrl} alt={displayName} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-full bg-mint-300 text-xs font-semibold text-forest-900">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{displayName}</span>
-                  <span className="truncate text-xs">{email}</span>
+                <div className="grid flex-1 text-left leading-tight">
+                  <span className="truncate text-[13px] font-semibold text-foreground">
+                    {displayName}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {email}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuItem asChild>
               <Link to={clinicPath("/perfil")}>
-                <BadgeCheckIcon />
+                <OkIcon />
                 Perfil
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={clinicPath("/customization")}>
-                <Settings2Icon />
-                Preferencias
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => void handleSignOut()}>
-              <LogOutIcon />
+              <LogoutIcon />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

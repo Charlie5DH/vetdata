@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useCreateMeasure } from "@/api/templates";
 import { MeasureForm } from "@/components/measures/measure-form";
 import { PageLayout } from "@/components/layout/page-layout";
+import { ArrowLIcon } from "@/components/icons/vetdata-icons";
 import { Button } from "@/components/ui/button";
 import { useClinicPath } from "@/lib/clinic-routes";
 
@@ -14,28 +15,33 @@ export default function MeasureCreate() {
 
   return (
     <PageLayout
-      title="Medida"
+      title="Nova medida"
       actions={
         <Button variant="outline" asChild>
-          <Link to={clinicPath("/measures")}>Voltar para medidas</Link>
+          <Link to={clinicPath("/measures")}>
+            <ArrowLIcon />
+            Voltar para medidas
+          </Link>
         </Button>
       }
     >
-      <MeasureForm
-        submitLabel="Criar Medida"
-        isSubmitting={createMeasure.isPending}
-        onCancel={() => navigate(-1)}
-        onSubmit={async (payload) => {
-          try {
-            await createMeasure.mutateAsync(payload);
-            toast.success("Medida criada com sucesso!");
-            navigate(clinicPath("/measures"));
-          } catch (error) {
-            console.error(error);
-            toast.error("Erro ao criar medida. Tente novamente.");
-          }
-        }}
-      />
+      <div className="w-full max-w-3xl">
+        <MeasureForm
+          submitLabel="Criar Medida"
+          isSubmitting={createMeasure.isPending}
+          onCancel={() => navigate(-1)}
+          onSubmit={async (payload) => {
+            try {
+              await createMeasure.mutateAsync(payload);
+              toast.success("Medida criada com sucesso!");
+              navigate(clinicPath("/measures"));
+            } catch (error) {
+              console.error(error);
+              toast.error("Erro ao criar medida. Tente novamente.");
+            }
+          }}
+        />
+      </div>
     </PageLayout>
   );
 }

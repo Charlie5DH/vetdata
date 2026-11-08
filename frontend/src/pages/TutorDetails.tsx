@@ -11,11 +11,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  IconUser,
-  IconChevronDown,
-  IconChevronUp,
-  IconPaw,
-} from "@tabler/icons-react";
+  CalendarIcon,
+  CatIcon,
+  ChevDIcon,
+  DogIcon,
+  MailIcon,
+  PawIcon,
+  PhoneIcon,
+} from "@/components/icons/vetdata-icons";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -25,7 +29,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
-import { themeAccentClasses } from "@/lib/theme-styles";
+import { toCatalogSpecies } from "@/lib/species";
+import { cn } from "@/lib/utils";
+
+function SpeciesIcon({ species }: { species: string }) {
+  const key = toCatalogSpecies(species);
+  if (key === "dog") return <DogIcon size={16} />;
+  if (key === "cat") return <CatIcon size={16} />;
+  return <PawIcon size={16} />;
+}
 
 export default function TutorDetails() {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +49,7 @@ export default function TutorDetails() {
     return (
       <PageLayout title="Carregando...">
         <div className="space-y-4">
-          <div className="h-[120px] rounded-xl bg-muted/50 animate-pulse" />
+          <Skeleton className="h-[120px] rounded-xl" />
         </div>
       </PageLayout>
     );
@@ -46,183 +58,223 @@ export default function TutorDetails() {
   if (!owner || !id) {
     return (
       <PageLayout title="Tutor não encontrado">
-        <div>O tutor solicitado não foi encontrado.</div>
+        <p className="text-sm text-muted-foreground">
+          O tutor solicitado não foi encontrado.
+        </p>
       </PageLayout>
     );
   }
 
   const patients = owner.patients || [];
+  const initials =
+    `${owner.first_name?.[0] ?? ""}${owner.last_name?.[0] ?? ""}`.toUpperCase();
+  const createdAt = new Date(owner.created_at).toLocaleString("pt-BR", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
 
   return (
-    <PageLayout title={`Tutor: ${owner.first_name} ${owner.last_name}`}>
-      <div className="space-y-6">
-        {/* Tutor Information */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.chart5.icon}`}
-              >
-                <IconUser className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Informações do Tutor</CardTitle>
-                <CardDescription>Dados pessoais e de contato</CardDescription>
-              </div>
+    <PageLayout>
+      <div className="flex flex-col gap-6">
+        <header className="flex items-center gap-5">
+          <span className="grid size-[72px] shrink-0 place-items-center rounded-full bg-mint-300 text-2xl font-semibold text-forest-900">
+            {initials || <PawIcon size={24} />}
+          </span>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <h1 className="text-2xl font-semibold tracking-[-0.01em] text-balance">
+              {owner.first_name} {owner.last_name}
+            </h1>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[13.5px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <MailIcon size={14} />
+                {owner.email || "—"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 tabular-nums">
+                <PhoneIcon size={14} />
+                {owner.phone || "—"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 tabular-nums">
+                <PawIcon size={14} />
+                {patients.length}{" "}
+                {patients.length === 1 ? "paciente" : "pacientes"}
+              </span>
             </div>
+          </div>
+        </header>
+
+        {/* Tutor Information */}
+        <Card className={cn(!tutorInfoCollapsed && "gap-4")}>
+          <CardHeader>
+            <CardTitle className="text-base">Informações do tutor</CardTitle>
+            <CardDescription>Dados pessoais e de contato</CardDescription>
             <CardAction>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
+                aria-label={
+                  tutorInfoCollapsed
+                    ? "Mostrar informações"
+                    : "Ocultar informações"
+                }
                 onClick={() => setTutorInfoCollapsed(!tutorInfoCollapsed)}
               >
-                {tutorInfoCollapsed ? (
-                  <IconChevronDown className="h-4 w-4" />
-                ) : (
-                  <IconChevronUp className="h-4 w-4" />
-                )}
+                <ChevDIcon
+                  className={cn(
+                    "transition-transform duration-150",
+                    !tutorInfoCollapsed && "rotate-180",
+                  )}
+                />
               </Button>
             </CardAction>
           </CardHeader>
           {!tutorInfoCollapsed && (
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Nome Completo
-                  </span>
-                  <span className="font-medium text-lg">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 border-t border-border pt-4 md:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[13px] font-semibold">Nome completo</dt>
+                  <dd className="text-sm text-stone-700">
                     {owner.first_name} {owner.last_name}
-                  </span>
+                  </dd>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    E-mail
-                  </span>
-                  <span className="font-medium">{owner.email}</span>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[13px] font-semibold">E-mail</dt>
+                  <dd className="text-sm text-stone-700">
+                    {owner.email || "—"}
+                  </dd>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Telefone
-                  </span>
-                  <span className="font-medium">{owner.phone || "-"}</span>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[13px] font-semibold">Telefone</dt>
+                  <dd className="text-sm text-stone-700 tabular-nums">
+                    {owner.phone || "—"}
+                  </dd>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    CPF
-                  </span>
-                  <span className="font-medium">{owner.cpf || "-"}</span>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[13px] font-semibold">CPF</dt>
+                  <dd className="font-mono text-sm text-stone-700">
+                    {owner.cpf || "—"}
+                  </dd>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Total de Pacientes
-                  </span>
-                  <span className="font-medium text-lg">{patients.length}</span>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[13px] font-semibold">
+                    Total de pacientes
+                  </dt>
+                  <dd className="text-sm text-stone-700 tabular-nums">
+                    {patients.length}
+                  </dd>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Cadastrado em
-                  </span>
-                  <span className="text-sm">
-                    {new Date(owner.created_at).toLocaleString("pt-BR", {
-                      dateStyle: "long",
-                      timeStyle: "short",
-                    })}
-                  </span>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[13px] font-semibold">Cadastrado em</dt>
+                  <dd className="inline-flex items-center gap-1.5 text-sm text-stone-700">
+                    <CalendarIcon size={14} className="text-muted-foreground" />
+                    {createdAt}
+                  </dd>
                 </div>
-              </div>
+              </dl>
             </CardContent>
           )}
         </Card>
 
         {/* Associated Patients */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div
-                className={`rounded-lg p-2 ${themeAccentClasses.chart1.icon}`}
-              >
-                <IconPaw className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Pacientes</CardTitle>
-                <CardDescription>
-                  {patients.length}{" "}
-                  {patients.length === 1
-                    ? "paciente cadastrado"
-                    : "pacientes cadastrados"}
-                </CardDescription>
-              </div>
-            </div>
+        <Card className="gap-0 py-0">
+          <CardHeader className="border-b py-4">
+            <CardTitle className="text-base">Pacientes</CardTitle>
+            <CardDescription>
+              {patients.length}{" "}
+              {patients.length === 1
+                ? "paciente cadastrado"
+                : "pacientes cadastrados"}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {patients.length > 0 ? (
-              <div className="rounded-md border bg-card">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Espécie</TableHead>
-                      <TableHead>Raça</TableHead>
-                      <TableHead>Idade</TableHead>
-                      <TableHead>Peso</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {patients.map((patient) => (
-                      <TableRow
-                        key={patient.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/patients/${patient.id}`)}
+          {patients.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Paciente</TableHead>
+                  <TableHead>Espécie</TableHead>
+                  <TableHead className="text-right">Idade</TableHead>
+                  <TableHead className="text-right">Peso</TableHead>
+                  <TableHead className="text-right">
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {patients.map((patient) => (
+                  <TableRow
+                    key={patient.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/patients/${patient.id}`)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-mint-300 text-forest-900">
+                          <SpeciesIcon species={patient.species} />
+                        </span>
+                        <div className="flex min-w-0 flex-col">
+                          <span className="font-semibold text-foreground">
+                            {patient.name}
+                          </span>
+                          <span className="text-[12.5px] text-muted-foreground">
+                            {patient.breed || "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{patient.species || "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {patient.age_years ? `${patient.age_years} anos` : ""}
+                      {patient.age_years && patient.age_months ? " e " : ""}
+                      {patient.age_months ? `${patient.age_months} meses` : ""}
+                      {!patient.age_years && !patient.age_months ? (
+                        <span className="text-stone-500">—</span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {patient.weight_kg ? (
+                        <>
+                          {patient.weight_kg.toLocaleString("pt-BR")}
+                          <span className="ml-[3px] text-muted-foreground">
+                            kg
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-stone-500">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="secondary"
+                        size="xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/patients/${patient.id}`);
+                        }}
                       >
-                        <TableCell className="font-medium">
-                          {patient.name}
-                        </TableCell>
-                        <TableCell>{patient.species}</TableCell>
-                        <TableCell>{patient.breed || "-"}</TableCell>
-                        <TableCell>
-                          {patient.age_years ? `${patient.age_years} anos` : ""}
-                          {patient.age_years && patient.age_months ? " e " : ""}
-                          {patient.age_months
-                            ? `${patient.age_months} meses`
-                            : ""}
-                          {!patient.age_years && !patient.age_months ? "-" : ""}
-                        </TableCell>
-                        <TableCell>
-                          {patient.weight_kg ? `${patient.weight_kg} kg` : "-"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/patients/${patient.id}`);
-                            }}
-                          >
-                            Ver detalhes
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <p>Nenhum paciente cadastrado.</p>
-                <p className="text-sm mt-2">
-                  Os pacientes vinculados a este tutor aparecerão aqui.
-                </p>
-              </div>
-            )}
-          </CardContent>
+                        Ver detalhes
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex flex-col items-center gap-2 px-5 py-10 text-center">
+              <span className="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+                <PawIcon size={20} />
+              </span>
+              <h4 className="text-sm font-semibold">
+                Nenhum paciente cadastrado
+              </h4>
+              <p className="text-[13.5px] text-muted-foreground">
+                Os pacientes vinculados a este tutor aparecerão aqui.
+              </p>
+            </div>
+          )}
         </Card>
       </div>
     </PageLayout>

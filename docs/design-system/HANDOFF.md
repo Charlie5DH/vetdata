@@ -8,10 +8,8 @@ session). Last updated 2026-11-07.
 - **The design system is the app's only style.** Theme switching, the Personalização page, the 17 themes, dark mode
   and the extra font packages were removed. Every component in `frontend/src/components/ui` and every page was
   restyled to it.
-- **Nothing is committed yet.** The work sits uncommitted on `main` (about 144 changed, deleted or new files under
-  `frontend/`, `docs/design-system/`, `.agents/skills/vetdata-design-system` and `.claude/skills/vetdata-design-system`).
-  Review it with `git status` and `git diff`, then commit. Until it is committed and pushed, it exists only on the
-  machine where it was made.
+- **Committed on `main` as `ea65358`** ("Adopt VetData design system as the only style…", 149 files). `git show ea65358`
+  shows the whole change.
 - **Checks at handoff:** `npm run build` passes in `frontend/`. `npm run lint` shows 26 errors, the same 26 the last
   commit already had (none are from this work).
 - **Seen in the running app:** dashboard (Painel), patient list, patient details, treatment session with its chart,

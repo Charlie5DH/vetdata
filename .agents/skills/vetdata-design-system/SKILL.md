@@ -19,8 +19,8 @@ component you are touching.** §0 maps the spec onto this codebase and wins wher
 1. The user's explicit request.
 2. This design system (DESIGN.md §0, then the rest of DESIGN.md).
 3. Existing project conventions (the restyled shadcn components in `frontend/src/components/ui`).
-4. Generic skills (`frontend-design`, `apple-design`, `better-interface`, `shadcn`): use them for craft and mechanics
-   (motion physics, accessibility, shadcn CLI), never to pick another palette, typeface or shape language. When the
+4. Any other design guidance an agent brings with it (general-purpose design skills included): use it only for
+   mechanics such as accessibility and motion, never to pick another palette, typeface or shape language. When the
    shadcn CLI adds or updates a component, restyle it to this system before using it.
 
 ## The essentials (details in DESIGN.md)
